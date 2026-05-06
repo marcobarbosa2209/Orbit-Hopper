@@ -1,54 +1,44 @@
-### 1. Game Idea: "Orbit Hopper"
-You control a tiny spaceship currently orbiting a small planet. The planet is rotating. You must tap the screen at the exact right moment to launch your ship to the next planet above you. If you miss and fly off into deep space, it's Game Over. 
+# Orbit Hopper - Game Design Document
 
-### 2. Core Gameplay Loop
-1.⁠ ⁠*Wait & Aim:* The player's ship is attached to a rotating planet.
-2.⁠ ⁠*Action:* The player taps the screen. The ship detaches and shoots straight forward.
-3.⁠ ⁠*Resolution:* * *Success:* The ship hits the next planet, attaches to it, and begins rotating with it. The score goes up by 1. The camera pans up.
-    * *Failure:* The ship misses the planet and flies off-screen. Game Over.
-4.⁠ ⁠*Repeat:* The game spawns new planets indefinitely, getting slightly faster or smaller as the score increases.
+## 1. Game Concept & Story
+You control a sleek spaceship escaping a galaxy-consuming cosmic void (a black hole). You navigate by launching from rotating planets. The game features two primary modes: a Campaign mode where you escape distinct galaxies to reach a Space Station, and an Endless mode where you survive as long as possible against escalating chaos.
 
-### 3. Player Actions
-•⁠  ⁠*Single Tap:* Tap anywhere on the screen. There are no directional controls or joysticks. The entire game relies on *timing*. 
+## 2. Core Gameplay Loop
+1. **Wait & Aim:** The ship is attached to a rotating planet. The player must time their jump based on the planet's rotation.
+2. **Action:** Single screen tap. The ship detaches and shoots straight forward.
+3. **Resolution:**
+   - **Success:** Ship hits the next planet and attaches to it.
+   - **Failure (The Void):** The player waits too long, and the creeping Black Hole at the bottom of the screen consumes them.
+   - **Failure (Deep Space/Hazard):** The ship misses a planet and flies off-screen, or collides with a crossing meteor.
 
-### 4. Progression System
-•⁠  ⁠*In-Game Difficulty:* As the score increases, planets spawn with varying sizes, rotate at faster speeds, or alternate between clockwise and counter-clockwise rotation.
-•⁠  ⁠*Meta-Progression:* A local High Score tracker. (No complex cloud saves, just beating your own personal best).
+## 3. Mechanics & Hazards
+- **Dynamic Black Hole:** Slowly creeps up the screen from the bottom. Speeds up aggressively if the player stays on a single planet for too long (e.g., > 3 seconds), forcing quick decisions.
+- **Math-Driven Planet Rotation:** Planets don't just spin at a constant rate. Using mathematical functions (like sine waves), planets can dynamically speed up, slow down, or reverse direction, making timing unpredictable.
+- **Meteor Showers:** High-speed projectiles that fly across the screen. They are heavily telegraphed with a flashing `!` warning icon and a faint trajectory line 1.5 seconds before they appear.
 
-### 5. UI Screens
-Keep it to exactly two scenes to avoid overly complex transition logic:
-1.⁠ ⁠*Main Menu / Game Over Overlay:* * Title text ("Orbit Hopper").
-   * "Tap to Start" text.
-   * High Score display.
-   * (Note: You can overlay this UI directly on top of the paused game scene to save time, rather than building an entirely separate ⁠ SKScene ⁠).
-2.⁠ ⁠*Active Game HUD:*
-   * A large, slightly transparent Score number at the top center of the screen.
+## 4. Game Modes
+### A. Campaign Mode
+- **Structure:** 5 to 10 distinct "Galaxies" (Levels).
+- **Generation:** Procedural placement, but fixed difficulty parameters per level.
+  - *Example:* Level 1 (15 jumps, slow constant rotation, no meteors). Level 5 (40 jumps, erratic sine-wave rotation, frequent meteors).
+- **Goal:** Reach the final "Space Station Hub" at the top to clear the galaxy and warp to the next level.
 
----
+### B. Endless Mode
+- **Structure:** Infinite procedural generation.
+- **Progression:** Difficulty scales dynamically based on the current score (planets hopped).
+  - *Phase 1 (0-20):* Slow rotation, no hazards.
+  - *Phase 2 (21-50):* Math-based rotations begin.
+  - *Phase 3 (51-100):* Meteors start spawning; void speed increases.
+  - *Phase 4 (100+):* Maximum chaos, reversing planets, dual meteor spawns.
 
-### 6. Technical Breakdown (SpriteKit)
-Here are the specific SpriteKit tools you will use:
-•⁠  ⁠*⁠ SKSpriteNode ⁠:* Used for the Ship, Planets, and a starry background.
-•⁠  ⁠*⁠ SKPhysicsBody ⁠:* * The Ship will have a dynamic physics body. 
-  * The Planets will have static (non-moving) physics bodies.
-  * You will use ⁠ contactTestBitMask ⁠ to detect when the Ship touches a Planet.
-•⁠  ⁠*⁠ SKPhysicsJointFixed ⁠ or Parenting:* When the ship hits a planet, you either create a physics joint to pin them together, or simply remove the ship from the scene and add it as a ⁠ child ⁠ of the planet so it inherits the rotation automatically.
-•⁠  ⁠*⁠ SKAction ⁠:* * ⁠ SKAction.rotate(byAngle:duration:) ⁠ to make the planets spin indefinitely.
-  * ⁠ SKAction.moveTo(...) ⁠ to pan the camera up when a successful jump happens.
-•⁠  ⁠*⁠ SKCameraNode ⁠:* Placed in the scene to follow the player upward.
-•⁠  ⁠*⁠ UserDefaults ⁠:* To save and load the player's high score.
+## 5. UI & Screens
+1. **Main Menu:** Title, High Scores, "Campaign" Node map, "Endless" Play Button, Settings.
+2. **Active HUD:** Large transparent score in the background, active warning indicators (meteors), faint trajectory lines.
+3. **Level Complete Overlay:** Space Station warp cinematic, "Galaxy Cleared," Next Level button.
+4. **Game Over Overlay:** "Consumed by the Void" or "Lost in Space," final score, Quick Restart / Home buttons.
 
----
-
-### 7. MVP Scope (4-Week Schedule)
-•⁠  ⁠*Week 1: Basics & Physics.* Set up the Xcode project. Create simple colored circles for the ship and planets (no fancy art yet). Implement the tap gesture to apply an impulse (⁠ applyImpulse ⁠) to the ship's physics body.
-•⁠  ⁠*Week 2: The Core Loop.* Implement ⁠ SKPhysicsContactDelegate ⁠. When the ship touches a planet, stop its movement and attach it. Make the planets rotate. 
-•⁠  ⁠*Week 3: Endless Spawning & Camera.* Make the camera follow the ship upwards. Write a function that spawns a new planet above the highest one, and deletes planets that fall below the bottom of the screen (to save memory).
-•⁠  ⁠*Week 4: Game Loop & Polish.* Add the Score counter. Implement the Game Over state (detect when the ship goes off-screen). Add a simple menu overlay. Save the high score using ⁠ UserDefaults ⁠.
-
----
-
-### 8. Stretch Goals (If you finish early)
-•⁠  ⁠*Visuals:* Replace the colored circles with actual ⁠ .png ⁠ space sprites.
-•⁠  ⁠*Juice:* Add an ⁠ SKEmitterNode ⁠ to the back of the ship to create a particle trail (rocket exhaust) when it jumps.
-•⁠  ⁠*Audio:* Add a simple "jump" sound effect (⁠ SKAction.playSoundFileNamed ⁠) and a background music track.
+## 6. MVP Scope (4-Week Schedule)
+- **Week 1: Core Input & Physics.** Set up Xcode. Build ship jumping, attaching to static planets, and basic infinite camera tracking upward.
+- **Week 2: Danger & Math.** Implement the Black Hole "kill line" and the mathematical rotation functions (sine waves) for planets in the update loop.
+- **Week 3: Hazards & Game Modes.** Implement the `GameMode` enum. Build the Endless spawner, the Campaign level logic (Space Station goal), and the Meteor warning/projectile system.
+- **Week 4: UI & Polish.** Build the Main Menu, End-state overlays, and `UserDefaults` to save Campaign progress and Endless High Scores. Add particles (rocket trail).
