@@ -30,14 +30,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
 
         addChild(cameraNode)
         
-        
         // 3. Spawn Initial Planet
-        currentPlanet = PlanetNode(radius: 60)
+        currentPlanet = PlanetNode(radius: 60, imagePath: "planet-earth")
         currentPlanet.position = CGPoint(x: view.bounds.minX, y: view.bounds.minY + 100)
         addChild(currentPlanet)
         
         // 4. Spawn a Target Planet Above it
-        let targetPlanet = PlanetNode(radius: 50)
+        let targetPlanet = PlanetNode(radius: 50, imagePath: "planet-mars")
         targetPlanet.position = CGPoint(x: view.bounds.minX, y: view.bounds.minY - 150)
         addChild(targetPlanet)
         
@@ -49,6 +48,24 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     override func update(_ currentTime: TimeInterval) {
         // Make camera smoothly follow the ship
         cameraNode.position.y = ship.parent === self ? ship.position.y : currentPlanet.position.y
+    
+        // 1. Only check bounds if the ship is flying
+        if ship.parent === self {
+            
+            let screenWidth = self.size.width
+            
+            let leftEdge = currentPlanet.position.x - (screenWidth / 2) - 50
+            let rightEdge = currentPlanet.position.x + (screenWidth / 2) + 50
+            
+            if(ship.position.x < leftEdge || ship.position.x > rightEdge) {
+                
+                // Calculate the Y distance of the planet to spawn the ship on the edge
+                let resetDistance = currentPlanet.radius + ship.radius
+                
+                // Teleport back to the exact planet it just launched from
+                attachShip(to: currentPlanet, atLocalPosition: CGPoint(x: 0, y: resetDistance))
+            }
+        }
     }
     
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
@@ -56,10 +73,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     // MARK: - Core Mechanics
-    
     func attachShip(to planet: PlanetNode, atLocalPosition localPos: CGPoint? = nil) {
-        guard planet != currentPlanet || previousPlanet == nil else { return }
-        
         // Stop physics movement
         ship.physicsBody?.velocity = .zero
         ship.removeFromParent()
@@ -71,7 +85,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             ship.position = pos
         }
         
-        previousPlanet = currentPlanet
+        // Update our tracker
         currentPlanet = planet
     }
     
@@ -82,7 +96,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // 1. Get the ship's current position in the scene
         let shipScenePos = currentPlanet.convert(ship.position, to: self)
         
-        // 2. Calculate launch direction (Vector from planet center to ship)
+        // 2. Calculate launch direction
         let dx = shipScenePos.x - currentPlanet.position.x
         let dy = shipScenePos.y - currentPlanet.position.y
         let distance = sqrt(dx*dx + dy*dy)
@@ -93,9 +107,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.addChild(ship)
         ship.position = shipScenePos
         
-        // 4. Apply force (Unity: Rigidbody.AddForce)
+        // 4. Apply force 
         let launchForce: CGFloat = 8
         ship.physicsBody?.applyImpulse(CGVector(dx: direction.dx * launchForce, dy: direction.dy * launchForce))
+        
+        previousPlanet = currentPlanet
     }
     
     func didBegin(_ contact: SKPhysicsContact) {
