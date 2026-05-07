@@ -1,3 +1,10 @@
+//
+//  GameMode.swift
+//  OrbitHopper
+//
+//  Created by Marco Barbosa on 07/05/2026.
+//
+
 import SwiftUI
 import SpriteKit
 
@@ -19,3 +26,4 @@ struct ContentView: View {
 #Preview {
     ContentView()
 }
+ 
