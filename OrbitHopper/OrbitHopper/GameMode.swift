@@ -47,6 +47,7 @@ protocol GameModeDirector {
 // 5. Endless Mode Logic
 class EndlessDirector: GameModeDirector {
     var score = 0
+    var spawnCount = 0
     let possibleTextures = ["planet-earth", "planet-mars"]
     
     func generateNextObject() -> SpawnableObject? {
@@ -56,11 +57,13 @@ class EndlessDirector: GameModeDirector {
         let curve: RotationCurve
         
         // First 3 planets are easy and constant. After that, generate random planets
-        if score < 3 {
+        if self.spawnCount < 3 {
             curve = CurveFactory.generateConstant(speed: 1.0)
         } else {
             curve = CurveFactory.generateRandomWave()
         }
+        
+        self.spawnCount += 1
         
         return .planet(radius: randomRadius,
                        speedMultiplier: 1.0,
@@ -78,6 +81,7 @@ class EndlessDirector: GameModeDirector {
 // 6. Campaign Mode Logic
 class CampaignDirector: GameModeDirector {
     var score = 0
+    var spawnCount = 0
     let levels: [Level]
     var currentLevelIndex: Int
     
@@ -102,14 +106,17 @@ class CampaignDirector: GameModeDirector {
         let curve = CurveFactory.generateRandomWave()
         
         // If score hits planetAmount, the next spawn should be a SpaceStation (Level End)
-        if let level = currentLevel, score >= level.planetAmount {
+        if let level = currentLevel, self.spawnCount >= level.planetAmount {
             
-            if score >= level.planetAmount + 1 {
+            if self.spawnCount >= level.planetAmount + 1 {
                 return nil
             }
             
+            self.spawnCount += 1
             return .spaceStation(radius: 80)
         }
+        
+        self.spawnCount += 1
         
         return .planet(radius: randomRadius,
                        speedMultiplier: difficulty,

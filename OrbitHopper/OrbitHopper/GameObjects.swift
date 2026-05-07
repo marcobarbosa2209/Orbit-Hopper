@@ -166,7 +166,6 @@ struct LevelLoader {
     static func loadLevels() -> [Level] {
         // 1. Locate file
         guard let url = Bundle.main.url(forResource: "Levels", withExtension: "json") else {
-            print("❌ RESOURCE NOT FOUND: Make sure Levels.json is in the left sidebar and 'Copy Bundle Resources'")
             return []
         }
 
@@ -174,14 +173,14 @@ struct LevelLoader {
             let data = try Data(contentsOf: url)
             let decoder = JSONDecoder()
             let levels = try decoder.decode([Level].self, from: data)
-            print("✅ SUCCESS: Loaded \(levels.count) levels.")
+            print("Loaded \(levels.count) levels.")
             return levels
         } catch let decodingError as DecodingError {
             // This will tell you exactly which comma or bracket is missing in your JSON
-            print("❌ JSON DECODING ERROR: \(decodingError)")
+            print("JSON DECODING ERROR: \(decodingError)")
             return []
         } catch {
-            print("❌ UNKNOWN ERROR: \(error)")
+            print("UNKNOWN ERROR: \(error)")
             return []
         }
     }
