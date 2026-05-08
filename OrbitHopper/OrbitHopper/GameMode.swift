@@ -32,7 +32,7 @@ struct CurveFactory {
 
 // 3. The exact object to spawn
 enum SpawnableObject {
-    case planet(radius: CGFloat, speedMultiplier: CGFloat, curve: RotationCurve, imagePath: String?)
+    case planet(radius: CGFloat, colliderRadius: CGFloat = -1, speedMultiplier: CGFloat, curve: RotationCurve, imagePath: String?)
     case spaceStation(radius: CGFloat)
     // case meteor(radius: CGFloat, speed: CGVector)
 }
@@ -105,17 +105,17 @@ class CampaignDirector: GameModeDirector {
     }
 
     func generateNextObject() -> SpawnableObject? {
-        let randomRadius = CGFloat.random(in: 40...70)
-        let randomImage = possibleTextures.randomElement()
+        guard let level = currentLevel else { return nil }
         
         // Use the difficulty modifier from the JSON to make planets spin faster
         let difficulty = currentLevel?.difficultyModifier ?? 1.0
         let curve = CurveFactory.generateRandomWave()
         
-        // If score hits planetAmount, the next spawn should be a SpaceStation (Level End)
-        if let level = currentLevel, self.spawnCount >= level.planetAmount {
+        // 1. Check if all the planets in the array have been spawned
+        if self.spawnCount >= level.planets.count {
             
-            if self.spawnCount >= level.planetAmount + 1 {
+            // If we've already spawned the station, stop spawning
+            if self.spawnCount >= level.planets.count + 1 {
                 return nil
             }
             
@@ -123,12 +123,17 @@ class CampaignDirector: GameModeDirector {
             return .spaceStation(radius: 80)
         }
         
+        // 2. Get the planet from JSON data
+        let planetData = level.planets[self.spawnCount]
+        
         self.spawnCount += 1
         
-        return .planet(radius: randomRadius,
+        // 3. Spawn it using the precise data from the JSON
+        return .planet(radius: planetData.radius,
+                       colliderRadius: planetData.effectiveColliderRadius,
                        speedMultiplier: difficulty,
                        curve: curve,
-                       imagePath: randomImage)
+                       imagePath: planetData.imageUrl)
     }
     
     func getBlackHoleSpeed() -> CGFloat {

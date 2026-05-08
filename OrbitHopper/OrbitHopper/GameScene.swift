@@ -86,7 +86,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 
         // Spawn Ship
         ship = ShipNode(radius: 20)
-        attachShip(to: currentInteractable, atLocalPosition: CGPoint(x: 0, y: startPlanet.radius + ship.radius))
+        attachShip(to: currentInteractable, atLocalPosition: CGPoint(x: 0, y: startPlanet.colliderRadius + ship.radius))
         
         // Spawn Black Hole
         blackHole = BlackHoleNode(radius: 800)
@@ -100,8 +100,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Spawner Logic
     private func makeInteractable(from config: SpawnableObject, sequenceIndex: Int) -> InteractableNode {
         switch config {
-        case .planet(let radius, let speedMult, let curve, let imagePath):
-            return PlanetNode(radius: radius, speedMultiplier: speedMult, curve: curve, imagePath: imagePath, sequenceIndex: sequenceIndex)
+        case .planet(let radius, let colliderRadius, let speedMult, let curve, let imagePath):
+            return PlanetNode(radius: radius, speedMultiplier: speedMult, colliderRadius: colliderRadius, curve: curve, imagePath: imagePath, sequenceIndex: sequenceIndex)
         case .spaceStation(let radius):
             return SpaceStationNode(radius: radius, sequenceIndex: sequenceIndex)
         }
@@ -623,7 +623,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let angle = atan2(rawLocalPos.y, rawLocalPos.x)
         
         // 3. Calculate the perfect surface distance
-        let perfectDistance = planet.radius + ship.radius
+        let perfectDistance = planet.colliderRadius + ship.radius
         
         // 4. Use Trig to find the exact X and Y coordinates on the edge
         let perfectLocalPos = CGPoint(
@@ -823,7 +823,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if let campaign = director as? CampaignDirector {
             // Campaign Mode Logic
             // Get the target amount, default to 1 to avoid crashes if level is missing
-            let targetScore = campaign.currentLevel?.planetAmount ?? 1
+            let targetScore = campaign.currentLevel?.planets.count ?? 1
             let percent = CGFloat(currentScore) / CGFloat(targetScore)
             clampedPercent = max(0.0, min(1.0, percent))
             

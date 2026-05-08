@@ -20,10 +20,12 @@ struct PhysicsCategory {
 class InteractableNode: SKShapeNode {
     let radius: CGFloat
     let sequenceIndex: Int
+    let colliderRadius: CGFloat
     
-    init(radius: CGFloat, sequenceIndex: Int) {
+    init(radius: CGFloat, sequenceIndex: Int, colliderRadius: CGFloat = -1) {
         self.radius = radius
         self.sequenceIndex = sequenceIndex
+        self.colliderRadius = colliderRadius
         super.init()
         
         // Base Visuals
@@ -32,7 +34,7 @@ class InteractableNode: SKShapeNode {
         self.strokeColor = .white
         
         // Base Physics (Shared by Planets, Stations, etc.)
-        self.physicsBody = SKPhysicsBody(circleOfRadius: radius * 1.1)
+        self.physicsBody = SKPhysicsBody(circleOfRadius: colliderRadius > 0 ? colliderRadius : radius * 1.1)
         self.physicsBody?.isDynamic = false
         self.physicsBody?.categoryBitMask = PhysicsCategory.planet
         
@@ -47,8 +49,8 @@ class InteractableNode: SKShapeNode {
 // MARK: - Planet Node
 class PlanetNode: InteractableNode {
     
-    init(radius: CGFloat, speedMultiplier: CGFloat, curve: @escaping RotationCurve, imagePath: String? = nil, sequenceIndex: Int) {
-            super.init(radius: radius, sequenceIndex: sequenceIndex)
+    init(radius: CGFloat, speedMultiplier: CGFloat, colliderRadius: CGFloat, curve: @escaping RotationCurve, imagePath: String? = nil, sequenceIndex: Int) {
+            super.init(radius: radius, sequenceIndex: sequenceIndex, colliderRadius: colliderRadius)
         
         // 1. Visuals: Draw a circle
         let circle = CGPath(ellipseIn: CGRect(x: -radius, y: -radius, width: radius * 2, height: radius * 2), transform: nil)
@@ -101,6 +103,19 @@ class PlanetNode: InteractableNode {
     }
 }
 
+// MARK: - Level Data Models
+struct PlanetConfig: Codable {
+    let imageUrl: String
+    let radius: CGFloat
+    let colliderRadius: CGFloat?
+    let hexColor: String?
+    
+    // default to the visual radius if colliderRadius is missing
+    var effectiveColliderRadius: CGFloat {
+        return colliderRadius ?? radius
+    }
+}
+
 // MARK: - Ship Node
 class ShipNode: SKShapeNode {
     
@@ -134,7 +149,7 @@ class ShipNode: SKShapeNode {
 // MARK: - Space Station Node
 class SpaceStationNode: InteractableNode {
     
-    override init(radius: CGFloat, sequenceIndex: Int) {
+    override init(radius: CGFloat, sequenceIndex: Int, colliderRadius: CGFloat = -1) {
         super.init(radius: radius, sequenceIndex: sequenceIndex)
         self.strokeColor = .clear
         let sprite = SKSpriteNode(imageNamed: "space-station")
@@ -153,13 +168,13 @@ class SpaceStationNode: InteractableNode {
 
 // MARK: - Levels Class
 class Level: Codable {
-    let planetAmount: Int
     let difficultyModifier: CGFloat
     let meteorChance: CGFloat
     let galaxyName: String
+    let planets: [PlanetConfig]
 
-    init(planetAmount: Int, difficultyModifier: CGFloat, meteorChance: CGFloat, galaxyName: String) {
-        self.planetAmount = planetAmount
+    init(difficultyModifier: CGFloat, meteorChance: CGFloat, galaxyName: String, planets: [PlanetConfig]) {
+        self.planets = planets
         self.difficultyModifier = difficultyModifier
         self.meteorChance = meteorChance
         self.galaxyName = galaxyName

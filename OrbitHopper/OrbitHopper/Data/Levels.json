@@ -1,14 +1,25 @@
 [
   {
-    "planetAmount": 5,
     "difficultyModifier": 1.0,
-    "meteorChance": 0.25,
-    "galaxyName": "Milky Way"
-  },
-  {
-    "planetAmount": 10,
-    "difficultyModifier": 1.1,
     "meteorChance": 0.15,
-    "galaxyName": "Andromeda"
+    "galaxyName": "Milky Way",
+    "planets": [
+        {
+            "imageUrl": "planet-mars",
+            "radius": 40.0,
+            "hexColor": "#A8A8A8"
+        },
+        {
+            "imageUrl": "planet-earth",
+            "radius": 55.0,
+            "hexColor": "#4B90E2"
+        },
+        {
+            "imageUrl": "planet-earth",
+            "radius": 75.0,
+            "colliderRadius": 45.0,
+            "hexColor": "#E3D599"
+        }
+    ]
   }
 ]
