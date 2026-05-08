@@ -7,6 +7,14 @@
 
 import SpriteKit
 
+struct StarData {
+    let node: SKSpriteNode
+    let parallaxSpeed: CGFloat
+}
+
+var backgroundStars: [StarData] = []
+var lastCameraY: CGFloat = 0
+
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Ship
@@ -53,13 +61,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.camera = cameraNode
         
         // 2.1 Setup Background as child of camera
-        let background = SKSpriteNode(imageNamed: "StaticBackground")
-        background.zPosition = -100
-        cameraNode.addChild(background)
+        initializeStars(view: view)
         
         // Initialize Game Mode
-        // director = CampaignDirector(levelIndex: 1)
-        director = EndlessDirector()
+        director = CampaignDirector(levelIndex: 1)
+        // director = EndlessDirector()
         
         // 2.2 Setup UI
         initializeUI(camera: cameraNode, view: self.view ?? SKView())
@@ -95,6 +101,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Frame the initial camera
         updateCamera(instant: true)
+        
+        lastCameraY = cameraNode.position.y
     }
     
     // MARK: - Spawner Logic
@@ -257,6 +265,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         if lastUpdateTime == 0 { lastUpdateTime = currentTime }
         let dt = currentTime - lastUpdateTime
         lastUpdateTime = currentTime
+        
+        // Star paralax effect
+        let dy = cameraNode.position.y - lastCameraY
+        lastCameraY = cameraNode.position.y
+        
+        let screenHeight = self.size.height
+        let screenWidth = self.size.width
+        
+        for starData in backgroundStars {
+            // Push the star down based on its specific depth speed
+            starData.node.position.y -= dy * starData.parallaxSpeed
+            
+            // If the star falls completely off the bottom of the screen, wrap it to the top!
+            // We add 20 pixels of buffer so it doesn't pop in visibly.
+            if starData.node.position.y < -screenHeight / 2 - 20 {
+                starData.node.position.y += screenHeight + 40
+                
+                // Randomize its X coordinate so the background pattern changes infinitely
+                starData.node.position.x = CGFloat.random(in: -screenWidth/2...screenWidth/2)
+                
+            } else if starData.node.position.y > screenHeight / 2 + 20 {
+                // Failsafe: if the player somehow moves downwards
+                starData.node.position.y -= screenHeight + 40
+                starData.node.position.x = CGFloat.random(in: -screenWidth/2...screenWidth/2)
+            }
+        }
         
         // 1. Move black whole upwards
         let currentSpeed = director.getBlackHoleSpeed()
@@ -914,6 +948,73 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             isTrackerVisible = true
             distanceContainer.removeAllActions()
             distanceContainer.run(SKAction.fadeIn(withDuration: 0.3))
+        }
+    }
+    
+    // MARK: - Starfield Generation
+    func initializeStars(view: SKView) {
+        let screenWidth = view.bounds.width
+        let screenHeight = view.bounds.height
+        
+        // 1. Pre-render 3 glow textures to save CPU power
+        let baseRadius: CGFloat = 2.0
+        let whiteGlow = SKTexture.planetGlow(planetRadius: baseRadius, color: .white, radiusSize: 4.0)
+        let greyGlow = SKTexture.planetGlow(planetRadius: baseRadius, color: UIColor(hex: "#4B90E2") ?? .gray, radiusSize: 4.0)
+        
+        // Weight the array so white stars are much more common
+        let textures = [whiteGlow, whiteGlow, whiteGlow, greyGlow, greyGlow]
+        
+        // 2. Generate 150 stars
+        for _ in 0..<150 {
+            let depthRoll = CGFloat.random(in: 0...1)
+            let scale: CGFloat
+            let parallaxSpeed: CGFloat
+            let maxAlpha: CGFloat
+            
+            // Organize into 3 depth layers
+            if depthRoll < 0.5 {
+                // Back layer: Tiny, dim, moves very slow
+                scale = CGFloat.random(in: 0.3...0.6)
+                parallaxSpeed = 0.15
+                maxAlpha = CGFloat.random(in: 0.2...0.5)
+            } else if depthRoll < 0.85 {
+                // Mid layer: Medium size, medium speed
+                scale = CGFloat.random(in: 0.6...1.0)
+                parallaxSpeed = 0.4
+                maxAlpha = CGFloat.random(in: 0.4...0.7)
+            } else {
+                // Front layer: Big, bright, moves fast
+                scale = CGFloat.random(in: 1.0...1.5)
+                parallaxSpeed = 0.8
+                maxAlpha = CGFloat.random(in: 0.7...1.0)
+            }
+            
+            // 3. Create the star node
+            let starTexture = whiteGlow
+            let star = SKSpriteNode(texture: starTexture)
+            star.setScale(scale)
+            
+            // Random position inside the camera bounds
+            let randomX = CGFloat.random(in: -screenWidth/2...screenWidth/2)
+            let randomY = CGFloat.random(in: -screenHeight/2...screenHeight/2)
+            star.position = CGPoint(x: randomX, y: randomY)
+            star.zPosition = -100 + scale // Ensure bigger stars render on top of smaller ones
+            star.alpha = maxAlpha
+            
+            // 4. Add blinking animation
+            let blinkDuration = TimeInterval.random(in: 1.0...4.0)
+            let fadeOut = SKAction.fadeAlpha(to: maxAlpha * 0.1, duration: blinkDuration)
+            let fadeIn = SKAction.fadeAlpha(to: maxAlpha, duration: blinkDuration)
+            
+            // Randomize the start time so they don't all blink in unison
+            let startDelay = SKAction.wait(forDuration: TimeInterval.random(in: 0...2.0))
+            let blinkSequence = SKAction.sequence([fadeOut, fadeIn])
+            
+            star.run(SKAction.sequence([startDelay, SKAction.repeatForever(blinkSequence)]))
+            
+            // Add to camera so we can control their offset mathematically
+            cameraNode.addChild(star)
+            backgroundStars.append(StarData(node: star, parallaxSpeed: parallaxSpeed))
         }
     }
 }

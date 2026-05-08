@@ -228,7 +228,7 @@ class BlackHoleNode: SKShapeNode {
         let circle = CGPath(ellipseIn: CGRect(x: -radius, y: -radius, width: radius * 2, height: radius * 2), transform: nil)
         self.path = circle
         
-        // self.strokeColor = .clear TODO: Remove this line further into development
+        self.strokeColor = .clear
         
         // 2. Apply Texture OR Color
         if !imagePath.isEmpty {
@@ -256,7 +256,7 @@ class BlackHoleNode: SKShapeNode {
         
         
         // 2. Physics: Triggers collisions
-        self.physicsBody = SKPhysicsBody(circleOfRadius: radius)
+        self.physicsBody = SKPhysicsBody(circleOfRadius: radius * 0.8)
         self.physicsBody?.isDynamic = false
         self.physicsBody?.categoryBitMask = PhysicsCategory.blackHole
         self.physicsBody?.contactTestBitMask = PhysicsCategory.ship
