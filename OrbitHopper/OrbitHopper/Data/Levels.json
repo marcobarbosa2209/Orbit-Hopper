@@ -1,25 +1,697 @@
 [
-  {
-    "difficultyModifier": 1.0,
-    "meteorChance": 0.15,
-    "galaxyName": "Milky Way",
-    "planets": [
-        {
-            "imageUrl": "planet-mars",
-            "radius": 40.0,
-            "hexColor": "#A8A8A8"
-        },
-        {
-            "imageUrl": "planet-earth",
-            "radius": 55.0,
-            "hexColor": "#4B90E2"
-        },
-        {
-            "imageUrl": "planet-earth",
-            "radius": 75.0,
-            "colliderRadius": 45.0,
-            "hexColor": "#E3D599"
-        }
-    ]
-  }
+    {
+        "difficultyModifier": 1.0,
+        "meteorChance": 0.1,
+        "galaxyName": "Solar System",
+        "planets": [
+            {
+                "imageUrl": "planet-mercury",
+                "radius": 20.0,
+                "hexColor": "#4B90E2"
+            },
+            {
+                "imageUrl": "planet-venus",
+                "radius": 38.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "planet-earth",
+                "radius": 40.0,
+                "hexColor": "#E3D599"
+            },
+            {
+                "imageUrl": "planet-mars",
+                "radius": 25.0,
+                "hexColor": "#E67E22"
+            },
+            {
+                "imageUrl": "planet-jupiter",
+                "radius": 80.0,
+                "hexColor": "#1ABC9C"
+            },
+            {
+                "imageUrl": "planet-saturn",
+                "radius": 75.0,
+                "hexColor": "#4B90E2"
+            },
+            {
+                "imageUrl": "planet-uranus",
+                "radius": 55.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "planet-neptune",
+                "radius": 50.0,
+                "hexColor": "#E67E22"
+            }
+        ]
+    },
+    {
+        "difficultyModifier": 1.2,
+        "meteorChance": 0.18,
+        "galaxyName": "Alpha Centauri Prime",
+        "planets": [
+            {
+                "imageUrl": "trappist-1b",
+                "radius": 42.0,
+                "hexColor": "#4B90E2"
+            },
+            {
+                "imageUrl": "trappist-1c",
+                "radius": 42.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "trappist-1d",
+                "radius": 30.0,
+                "hexColor": "#1ABC9C"
+            },
+            {
+                "imageUrl": "trappist-1e",
+                "radius": 35.0,
+                "hexColor": "#34495E"
+            },
+            {
+                "imageUrl": "trappist-1f",
+                "radius": 40.0,
+                "hexColor": "#9B59B6"
+            },
+            {
+                "imageUrl": "trappist-1g",
+                "radius": 45.0,
+                "hexColor": "#E3D599"
+            },
+            {
+                "imageUrl": "trappist-1h",
+                "radius": 30.0,
+                "hexColor": "#F1C40F"
+            },
+            {
+                "imageUrl": "kepler-90b",
+                "radius": 50.0,
+                "hexColor": "#E3D599"
+            },
+            {
+                "imageUrl": "kepler-90c",
+                "radius": 50.0,
+                "hexColor": "#F1C40F"
+            }
+        ]
+    },
+    {
+        "difficultyModifier": 1.4,
+        "meteorChance": 0.26,
+        "galaxyName": "TRAPPIST-1 Core",
+        "planets": [
+            {
+                "imageUrl": "kepler-90d",
+                "radius": 35.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "kepler-90e",
+                "radius": 35.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "kepler-90f",
+                "radius": 35.0,
+                "hexColor": "#F1C40F"
+            },
+            {
+                "imageUrl": "kepler-90g",
+                "radius": 60.0,
+                "hexColor": "#9B59B6"
+            },
+            {
+                "imageUrl": "kepler-90h",
+                "radius": 80.0,
+                "hexColor": "#34495E"
+            },
+            {
+                "imageUrl": "kepler-90i",
+                "radius": 40.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "hd-10180b",
+                "radius": 25.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "hd-10180c",
+                "radius": 50.0,
+                "hexColor": "#9B59B6"
+            },
+            {
+                "imageUrl": "hd-10180d",
+                "radius": 50.0,
+                "hexColor": "#F1C40F"
+            },
+            {
+                "imageUrl": "hd-10180e",
+                "radius": 50.0,
+                "hexColor": "#E74C3C"
+            }
+        ]
+    },
+    {
+        "difficultyModifier": 1.6,
+        "meteorChance": 0.34,
+        "galaxyName": "Kepler-90 Expanse",
+        "planets": [
+            {
+                "imageUrl": "hd-10180f",
+                "radius": 50.0,
+                "hexColor": "#4B90E2"
+            },
+            {
+                "imageUrl": "hd-10180g",
+                "radius": 60.0,
+                "hexColor": "#9B59B6"
+            },
+            {
+                "imageUrl": "kepler-11b",
+                "radius": 45.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "kepler-11c",
+                "radius": 45.0,
+                "hexColor": "#1ABC9C"
+            },
+            {
+                "imageUrl": "kepler-11d",
+                "radius": 45.0,
+                "hexColor": "#34495E"
+            },
+            {
+                "imageUrl": "kepler-11e",
+                "radius": 55.0,
+                "hexColor": "#E3D599"
+            },
+            {
+                "imageUrl": "kepler-11f",
+                "radius": 55.0,
+                "hexColor": "#F1C40F"
+            },
+            {
+                "imageUrl": "kepler-11g",
+                "radius": 65.0,
+                "hexColor": "#9B59B6"
+            },
+            {
+                "imageUrl": "proxima-b",
+                "radius": 42.0,
+                "hexColor": "#E3D599"
+            },
+            {
+                "imageUrl": "gliese-581c",
+                "radius": 45.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "gliese-581d",
+                "radius": 50.0,
+                "hexColor": "#34495E"
+            }
+        ]
+    },
+    {
+        "difficultyModifier": 1.8,
+        "meteorChance": 0.42,
+        "galaxyName": "HD 10180 Cluster",
+        "planets": [
+            {
+                "imageUrl": "gliese-581g",
+                "radius": 45.0,
+                "hexColor": "#9B59B6"
+            },
+            {
+                "imageUrl": "tau-ceti-e",
+                "radius": 50.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "tau-ceti-f",
+                "radius": 40.0,
+                "hexColor": "#4B90E2"
+            },
+            {
+                "imageUrl": "tau-ceti-g",
+                "radius": 45.0,
+                "hexColor": "#4B90E2"
+            },
+            {
+                "imageUrl": "tau-ceti-h",
+                "radius": 45.0,
+                "hexColor": "#1ABC9C"
+            },
+            {
+                "imageUrl": "kepler-452b",
+                "radius": 45.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "55-cancri-e",
+                "radius": 48.0,
+                "hexColor": "#F1C40F"
+            },
+            {
+                "imageUrl": "wasp-12b",
+                "radius": 85.0,
+                "hexColor": "#34495E"
+            },
+            {
+                "imageUrl": "wasp-17b",
+                "radius": 90.0,
+                "hexColor": "#34495E"
+            },
+            {
+                "imageUrl": "wasp-76b",
+                "radius": 85.0,
+                "hexColor": "#9B59B6"
+            },
+            {
+                "imageUrl": "corot-7b",
+                "radius": 45.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "gj-1214b",
+                "radius": 50.0,
+                "hexColor": "#E67E22"
+            }
+        ]
+    },
+    {
+        "difficultyModifier": 2.0,
+        "meteorChance": 0.5,
+        "galaxyName": "Gliese 581 Sector",
+        "planets": [
+            {
+                "imageUrl": "kepler-90c",
+                "radius": 50.0,
+                "hexColor": "#1ABC9C"
+            },
+            {
+                "imageUrl": "gliese-581d",
+                "radius": 50.0,
+                "hexColor": "#F1C40F"
+            },
+            {
+                "imageUrl": "trappist-1h",
+                "radius": 30.0,
+                "hexColor": "#E67E22"
+            },
+            {
+                "imageUrl": "kepler-11d",
+                "radius": 45.0,
+                "hexColor": "#4B90E2"
+            },
+            {
+                "imageUrl": "planet-neptune",
+                "radius": 50.0,
+                "hexColor": "#E3D599"
+            },
+            {
+                "imageUrl": "kepler-90c",
+                "radius": 50.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "hd-10180c",
+                "radius": 50.0,
+                "hexColor": "#34495E"
+            },
+            {
+                "imageUrl": "kepler-11f",
+                "radius": 55.0,
+                "hexColor": "#E67E22"
+            },
+            {
+                "imageUrl": "kepler-90c",
+                "radius": 50.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "kepler-452b",
+                "radius": 45.0,
+                "hexColor": "#9B59B6"
+            },
+            {
+                "imageUrl": "gj-1214b",
+                "radius": 50.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "kepler-90e",
+                "radius": 35.0,
+                "hexColor": "#E3D599"
+            },
+            {
+                "imageUrl": "kepler-11b",
+                "radius": 45.0,
+                "hexColor": "#9B59B6"
+            }
+        ]
+    },
+    {
+        "difficultyModifier": 2.2,
+        "meteorChance": 0.58,
+        "galaxyName": "Tau Ceti Reach",
+        "planets": [
+            {
+                "imageUrl": "kepler-11b",
+                "radius": 45.0,
+                "hexColor": "#E3D599"
+            },
+            {
+                "imageUrl": "trappist-1g",
+                "radius": 45.0,
+                "hexColor": "#E67E22"
+            },
+            {
+                "imageUrl": "hd-10180d",
+                "radius": 50.0,
+                "hexColor": "#F1C40F"
+            },
+            {
+                "imageUrl": "kepler-90g",
+                "radius": 60.0,
+                "hexColor": "#E67E22"
+            },
+            {
+                "imageUrl": "planet-mercury",
+                "radius": 20.0,
+                "hexColor": "#F1C40F"
+            },
+            {
+                "imageUrl": "kepler-11b",
+                "radius": 45.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "wasp-17b",
+                "radius": 90.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "planet-neptune",
+                "radius": 50.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "trappist-1d",
+                "radius": 30.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "kepler-11b",
+                "radius": 45.0,
+                "hexColor": "#E3D599"
+            },
+            {
+                "imageUrl": "gj-1214b",
+                "radius": 50.0,
+                "hexColor": "#E3D599"
+            },
+            {
+                "imageUrl": "kepler-11f",
+                "radius": 55.0,
+                "hexColor": "#1ABC9C"
+            },
+            {
+                "imageUrl": "hd-10180f",
+                "radius": 50.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "tau-ceti-e",
+                "radius": 50.0,
+                "hexColor": "#F1C40F"
+            }
+        ]
+    },
+    {
+        "difficultyModifier": 2.4,
+        "meteorChance": 0.66,
+        "galaxyName": "Kepler-11 Dominion",
+        "planets": [
+            {
+                "imageUrl": "hd-10180c",
+                "radius": 50.0,
+                "hexColor": "#34495E"
+            },
+            {
+                "imageUrl": "kepler-90b",
+                "radius": 50.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "trappist-1b",
+                "radius": 42.0,
+                "hexColor": "#4B90E2"
+            },
+            {
+                "imageUrl": "hd-10180f",
+                "radius": 50.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "hd-10180f",
+                "radius": 50.0,
+                "hexColor": "#4B90E2"
+            },
+            {
+                "imageUrl": "trappist-1c",
+                "radius": 42.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "trappist-1b",
+                "radius": 42.0,
+                "hexColor": "#F1C40F"
+            },
+            {
+                "imageUrl": "trappist-1c",
+                "radius": 42.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "proxima-b",
+                "radius": 42.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "wasp-17b",
+                "radius": 90.0,
+                "hexColor": "#34495E"
+            },
+            {
+                "imageUrl": "kepler-11d",
+                "radius": 45.0,
+                "hexColor": "#1ABC9C"
+            },
+            {
+                "imageUrl": "hd-10180c",
+                "radius": 50.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "trappist-1c",
+                "radius": 42.0,
+                "hexColor": "#F1C40F"
+            },
+            {
+                "imageUrl": "planet-neptune",
+                "radius": 50.0,
+                "hexColor": "#34495E"
+            },
+            {
+                "imageUrl": "planet-uranus",
+                "radius": 55.0,
+                "hexColor": "#4B90E2"
+            }
+        ]
+    },
+    {
+        "difficultyModifier": 2.6,
+        "meteorChance": 0.74,
+        "galaxyName": "55 Cancri Frontier",
+        "planets": [
+            {
+                "imageUrl": "gliese-581d",
+                "radius": 50.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "kepler-11d",
+                "radius": 45.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "kepler-11b",
+                "radius": 45.0,
+                "hexColor": "#E3D599"
+            },
+            {
+                "imageUrl": "planet-neptune",
+                "radius": 50.0,
+                "hexColor": "#9B59B6"
+            },
+            {
+                "imageUrl": "kepler-452b",
+                "radius": 45.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "hd-10180c",
+                "radius": 50.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "planet-uranus",
+                "radius": 55.0,
+                "hexColor": "#4B90E2"
+            },
+            {
+                "imageUrl": "trappist-1e",
+                "radius": 35.0,
+                "hexColor": "#E3D599"
+            },
+            {
+                "imageUrl": "trappist-1h",
+                "radius": 30.0,
+                "hexColor": "#34495E"
+            },
+            {
+                "imageUrl": "hd-10180f",
+                "radius": 50.0,
+                "hexColor": "#4B90E2"
+            },
+            {
+                "imageUrl": "kepler-90h",
+                "radius": 80.0,
+                "hexColor": "#4B90E2"
+            },
+            {
+                "imageUrl": "gj-1214b",
+                "radius": 50.0,
+                "hexColor": "#34495E"
+            },
+            {
+                "imageUrl": "gliese-581c",
+                "radius": 45.0,
+                "hexColor": "#E67E22"
+            },
+            {
+                "imageUrl": "trappist-1c",
+                "radius": 42.0,
+                "hexColor": "#E3D599"
+            },
+            {
+                "imageUrl": "hd-10180c",
+                "radius": 50.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "planet-neptune",
+                "radius": 50.0,
+                "hexColor": "#E67E22"
+            }
+        ]
+    },
+    {
+        "difficultyModifier": 2.8,
+        "meteorChance": 0.82,
+        "galaxyName": "The Abyss",
+        "planets": [
+            {
+                "imageUrl": "planet-neptune",
+                "radius": 50.0,
+                "hexColor": "#4B90E2"
+            },
+            {
+                "imageUrl": "planet-uranus",
+                "radius": 55.0,
+                "hexColor": "#34495E"
+            },
+            {
+                "imageUrl": "trappist-1g",
+                "radius": 45.0,
+                "hexColor": "#E3D599"
+            },
+            {
+                "imageUrl": "planet-neptune",
+                "radius": 50.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "planet-neptune",
+                "radius": 50.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "tau-ceti-e",
+                "radius": 50.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "gliese-581d",
+                "radius": 50.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "kepler-11f",
+                "radius": 55.0,
+                "hexColor": "#4B90E2"
+            },
+            {
+                "imageUrl": "trappist-1b",
+                "radius": 42.0,
+                "hexColor": "#1ABC9C"
+            },
+            {
+                "imageUrl": "trappist-1c",
+                "radius": 42.0,
+                "hexColor": "#E67E22"
+            },
+            {
+                "imageUrl": "tau-ceti-f",
+                "radius": 40.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "proxima-b",
+                "radius": 42.0,
+                "hexColor": "#E74C3C"
+            },
+            {
+                "imageUrl": "kepler-11f",
+                "radius": 55.0,
+                "hexColor": "#E3D599"
+            },
+            {
+                "imageUrl": "proxima-b",
+                "radius": 42.0,
+                "hexColor": "#34495E"
+            },
+            {
+                "imageUrl": "tau-ceti-f",
+                "radius": 40.0,
+                "hexColor": "#4B90E2"
+            },
+            {
+                "imageUrl": "kepler-90c",
+                "radius": 50.0,
+                "hexColor": "#A8A8A8"
+            },
+            {
+                "imageUrl": "trappist-1c",
+                "radius": 42.0,
+                "hexColor": "#E74C3C"
+            }
+        ]
+    }
 ]

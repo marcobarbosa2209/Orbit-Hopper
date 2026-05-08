@@ -55,6 +55,7 @@ class PlanetNode: InteractableNode {
         // 1. Visuals: Draw a circle
         let circle = CGPath(ellipseIn: CGRect(x: -radius, y: -radius, width: radius * 2, height: radius * 2), transform: nil)
         self.path = circle
+        self.strokeColor = .clear
         
         // 2. Apply Texture OR Color
         if let imagePath, !imagePath.isEmpty {
