@@ -135,7 +135,10 @@ class SpaceStationNode: InteractableNode {
     
     override init(radius: CGFloat, sequenceIndex: Int) {
         super.init(radius: radius, sequenceIndex: sequenceIndex)
-        self.fillColor = .systemGreen
+        self.strokeColor = .clear
+        let sprite = SKSpriteNode(imageNamed: "space-station")
+        sprite.size = CGSize(width: radius * 2, height: radius * 2)
+        self.addChild(sprite)
         
         // Space stations just rotate slowly and predictably
         let spin = SKAction.rotate(byAngle: .pi * 2, duration: 6.0)

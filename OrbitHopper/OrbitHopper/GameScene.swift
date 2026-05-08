@@ -58,7 +58,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         cameraNode.addChild(background)
         
         // Initialize Game Mode
-        director = CampaignDirector(levelIndex: 1)
+        director = CampaignDirector(levelIndex: 0)
         // director = EndlessDirector()
         
         // 2.2 Setup UI
@@ -326,6 +326,85 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.view?.presentScene(newScene, transition: transition)
     }
     
+    func levelComplete(station: SpaceStationNode) {
+        // 1. Disable user touches so they can't launch during the cinematic
+        self.view?.isUserInteractionEnabled = false
+        
+        // 2. Save Progress (advance to the next level)
+        if let campaign = director as? CampaignDirector {
+            SaveManager.saveLevelProgress(levelIndex: campaign.currentLevelIndex + 1)
+        }
+        
+        // Winning cutscene
+        // Action A: Fade out the ship
+        let hideShip = SKAction.run {
+            self.ship.run(SKAction.fadeOut(withDuration: 0.5))
+        }
+        
+        // Action B: Smoothly brake the station's rotation
+        let brakeStation = SKAction.run {
+            station.removeAllActions() // kills the infinite spin
+            
+            // Add a short easing rotation so it doesn't stop unnaturally fast
+            let brakeSpin = SKAction.rotate(byAngle: .pi / 4, duration: 1.0)
+            brakeSpin.timingMode = .easeOut
+            station.run(brakeSpin)
+        }
+        
+        // Action C: Accelerate the station off the top of the screen
+        let blastOff = SKAction.run {
+            // Move it exactly 1 screen height upwards
+            let moveUp = SKAction.moveBy(x: 0, y: self.size.height + 200, duration: 1.2)
+            // .easeIn makes it start slow and accelerate very fast
+            moveUp.timingMode = .easeIn
+            station.run(moveUp)
+        }
+        
+        // Action D: Hide HUD
+        let hideHUD = SKAction.run {
+            self.scoreLabel.run(SKAction.fadeOut(withDuration: 0.3))
+            self.distanceContainer.run(SKAction.fadeOut(withDuration: 0.3))
+        }
+        
+        // Action E: Pop up the "LEVEL COMPLETE" UI
+        let showUI = SKAction.run {
+            let winLabel = SKLabelNode(fontNamed: "JetBrainsMono-ExtraBold")
+            winLabel.text = "LEVEL COMPLETE"
+            winLabel.fontSize = 32
+            winLabel.fontColor = self.themeColor
+            winLabel.position = CGPoint(x: 0, y: 0)
+            
+            // Start it tiny and invisible
+            winLabel.alpha = 0
+            winLabel.setScale(0.5)
+            self.cameraNode.addChild(winLabel)
+            
+            // Pop it in
+            let popIn = SKAction.group([
+                SKAction.fadeIn(withDuration: 0.5),
+                SKAction.scale(to: 1.2, duration: 0.5)
+            ])
+            popIn.timingMode = .easeOut
+            winLabel.run(popIn)
+        }
+        
+        // Run the sequence
+        let waitShort = SKAction.wait(forDuration: 0.5)
+        let waitLong = SKAction.wait(forDuration: 1.0)
+        
+        let cinematicSequence = SKAction.sequence([
+            hideShip,
+            brakeStation,
+            waitLong,      // Wait for the station to fully stop
+            blastOff,
+            waitShort,     // Wait for the station to get some speed before showing text
+            hideHUD,
+            showUI
+        ])
+        
+        self.run(cinematicSequence)
+    }
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         launchShip()
     }
@@ -502,12 +581,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             updateScoreLabel(score: director.score)
         }
         
-        // Update the tracker
-        nextInteractable = self.children
-            .compactMap { $0 as? InteractableNode }
-            .filter { $0.position.y > station.position.y }
-            .min(by: { $0.position.y < $1.position.y })
-        
         // 2. Do Math to snap perfectly to the edge
         let rawLocalPos = station.convert(ship.position, from: self)
         let angle = atan2(rawLocalPos.y, rawLocalPos.x)
@@ -524,8 +597,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // 5. Queue the attachment for the end of the frame
         self.run(SKAction.run {
             self.attachShip(to: station, atLocalPosition: perfectLocalPos)
-            self.maintainPlanetBuffer()
-            self.updateCamera()
+            self.levelComplete(station: station)
         })
     }
     
