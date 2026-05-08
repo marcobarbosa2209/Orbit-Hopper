@@ -7,42 +7,42 @@
             {
                 "imageUrl": "planet-mercury",
                 "radius": 20.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#A8A8A8"
             },
             {
                 "imageUrl": "planet-venus",
                 "radius": 38.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#E67E22"
             },
             {
                 "imageUrl": "planet-earth",
                 "radius": 40.0,
-                "hexColor": "#E3D599"
+                "hexColor": "#4B90E2"
             },
             {
                 "imageUrl": "planet-mars",
                 "radius": 25.0,
-                "hexColor": "#E67E22"
+                "hexColor": "#E74C3C"
             },
             {
                 "imageUrl": "planet-jupiter",
                 "radius": 80.0,
-                "hexColor": "#1ABC9C"
+                "hexColor": "#C08B5C"
             },
             {
                 "imageUrl": "planet-saturn",
                 "radius": 75.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#F1C40F"
             },
             {
                 "imageUrl": "planet-uranus",
                 "radius": 55.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#81CFE0"
             },
             {
                 "imageUrl": "planet-neptune",
                 "radius": 50.0,
-                "hexColor": "#E67E22"
+                "hexColor": "#1F3A93"
             }
         ]
     },
@@ -54,47 +54,47 @@
             {
                 "imageUrl": "trappist-1b",
                 "radius": 42.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#CF000F"
             },
             {
                 "imageUrl": "trappist-1c",
                 "radius": 42.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#95A5A6"
             },
             {
                 "imageUrl": "trappist-1d",
                 "radius": 30.0,
-                "hexColor": "#1ABC9C"
+                "hexColor": "#1E8BC3"
             },
             {
                 "imageUrl": "trappist-1e",
                 "radius": 35.0,
-                "hexColor": "#34495E"
+                "hexColor": "#16A085"
             },
             {
                 "imageUrl": "trappist-1f",
                 "radius": 40.0,
-                "hexColor": "#9B59B6"
+                "hexColor": "#ECF0F1"
             },
             {
                 "imageUrl": "trappist-1g",
                 "radius": 45.0,
-                "hexColor": "#E3D599"
+                "hexColor": "#6C7A89"
             },
             {
                 "imageUrl": "trappist-1h",
                 "radius": 30.0,
-                "hexColor": "#F1C40F"
+                "hexColor": "#9B59B6"
             },
             {
                 "imageUrl": "kepler-90b",
                 "radius": 50.0,
-                "hexColor": "#E3D599"
+                "hexColor": "#D35400"
             },
             {
                 "imageUrl": "kepler-90c",
                 "radius": 50.0,
-                "hexColor": "#F1C40F"
+                "hexColor": "#F39C12"
             }
         ]
     },
@@ -106,22 +106,22 @@
             {
                 "imageUrl": "kepler-90d",
                 "radius": 35.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#A0522D"
             },
             {
                 "imageUrl": "kepler-90e",
                 "radius": 35.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#7F8C8D"
             },
             {
                 "imageUrl": "kepler-90f",
                 "radius": 35.0,
-                "hexColor": "#F1C40F"
+                "hexColor": "#2ECC71"
             },
             {
                 "imageUrl": "kepler-90g",
                 "radius": 60.0,
-                "hexColor": "#9B59B6"
+                "hexColor": "#8E44AD"
             },
             {
                 "imageUrl": "kepler-90h",
@@ -131,27 +131,27 @@
             {
                 "imageUrl": "kepler-90i",
                 "radius": 40.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#BDC3C7"
             },
             {
                 "imageUrl": "hd-10180b",
                 "radius": 25.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#800000"
             },
             {
                 "imageUrl": "hd-10180c",
                 "radius": 50.0,
-                "hexColor": "#9B59B6"
+                "hexColor": "#87CEEB"
             },
             {
                 "imageUrl": "hd-10180d",
                 "radius": 50.0,
-                "hexColor": "#F1C40F"
+                "hexColor": "#FFD700"
             },
             {
                 "imageUrl": "hd-10180e",
                 "radius": 50.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#FFA500"
             }
         ]
     },
@@ -163,57 +163,57 @@
             {
                 "imageUrl": "hd-10180f",
                 "radius": 50.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#00FFFF"
             },
             {
                 "imageUrl": "hd-10180g",
                 "radius": 60.0,
-                "hexColor": "#9B59B6"
+                "hexColor": "#FF00FF"
             },
             {
                 "imageUrl": "kepler-11b",
                 "radius": 45.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#A52A2A"
             },
             {
                 "imageUrl": "kepler-11c",
                 "radius": 45.0,
-                "hexColor": "#1ABC9C"
+                "hexColor": "#FFC0CB"
             },
             {
                 "imageUrl": "kepler-11d",
                 "radius": 45.0,
-                "hexColor": "#34495E"
+                "hexColor": "#008080"
             },
             {
                 "imageUrl": "kepler-11e",
                 "radius": 55.0,
-                "hexColor": "#E3D599"
+                "hexColor": "#808000"
             },
             {
                 "imageUrl": "kepler-11f",
                 "radius": 55.0,
-                "hexColor": "#F1C40F"
+                "hexColor": "#FF7F50"
             },
             {
                 "imageUrl": "kepler-11g",
                 "radius": 65.0,
-                "hexColor": "#9B59B6"
+                "hexColor": "#4B0082"
             },
             {
                 "imageUrl": "proxima-b",
                 "radius": 42.0,
-                "hexColor": "#E3D599"
+                "hexColor": "#DC143C"
             },
             {
                 "imageUrl": "gliese-581c",
                 "radius": 45.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#FF0000"
             },
             {
                 "imageUrl": "gliese-581d",
                 "radius": 50.0,
-                "hexColor": "#34495E"
+                "hexColor": "#000080"
             }
         ]
     },
@@ -225,62 +225,62 @@
             {
                 "imageUrl": "gliese-581g",
                 "radius": 45.0,
-                "hexColor": "#9B59B6"
+                "hexColor": "#40E0D0"
             },
             {
                 "imageUrl": "tau-ceti-e",
                 "radius": 50.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#00FF00"
             },
             {
                 "imageUrl": "tau-ceti-f",
                 "radius": 40.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#7FFFD4"
             },
             {
                 "imageUrl": "tau-ceti-g",
                 "radius": 45.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#FFD700"
             },
             {
                 "imageUrl": "tau-ceti-h",
                 "radius": 45.0,
-                "hexColor": "#1ABC9C"
+                "hexColor": "#C0C0C0"
             },
             {
                 "imageUrl": "kepler-452b",
                 "radius": 45.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#00FF7F"
             },
             {
                 "imageUrl": "55-cancri-e",
                 "radius": 48.0,
-                "hexColor": "#F1C40F"
+                "hexColor": "#FFFFFF"
             },
             {
                 "imageUrl": "wasp-12b",
                 "radius": 85.0,
-                "hexColor": "#34495E"
+                "hexColor": "#2F4F4F"
             },
             {
                 "imageUrl": "wasp-17b",
                 "radius": 90.0,
-                "hexColor": "#34495E"
+                "hexColor": "#FFB6C1"
             },
             {
                 "imageUrl": "wasp-76b",
                 "radius": 85.0,
-                "hexColor": "#9B59B6"
+                "hexColor": "#B22222"
             },
             {
                 "imageUrl": "corot-7b",
                 "radius": 45.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#FF4500"
             },
             {
                 "imageUrl": "gj-1214b",
                 "radius": 50.0,
-                "hexColor": "#E67E22"
+                "hexColor": "#4682B4"
             }
         ]
     },
@@ -292,67 +292,67 @@
             {
                 "imageUrl": "kepler-90c",
                 "radius": 50.0,
-                "hexColor": "#1ABC9C"
+                "hexColor": "#F39C12"
             },
             {
                 "imageUrl": "gliese-581d",
                 "radius": 50.0,
-                "hexColor": "#F1C40F"
+                "hexColor": "#000080"
             },
             {
                 "imageUrl": "trappist-1h",
                 "radius": 30.0,
-                "hexColor": "#E67E22"
+                "hexColor": "#9B59B6"
             },
             {
                 "imageUrl": "kepler-11d",
                 "radius": 45.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#008080"
             },
             {
                 "imageUrl": "planet-neptune",
                 "radius": 50.0,
-                "hexColor": "#E3D599"
+                "hexColor": "#1F3A93"
             },
             {
                 "imageUrl": "kepler-90c",
                 "radius": 50.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#F39C12"
             },
             {
                 "imageUrl": "hd-10180c",
                 "radius": 50.0,
-                "hexColor": "#34495E"
+                "hexColor": "#87CEEB"
             },
             {
                 "imageUrl": "kepler-11f",
                 "radius": 55.0,
-                "hexColor": "#E67E22"
+                "hexColor": "#FF7F50"
             },
             {
                 "imageUrl": "kepler-90c",
                 "radius": 50.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#F39C12"
             },
             {
                 "imageUrl": "kepler-452b",
                 "radius": 45.0,
-                "hexColor": "#9B59B6"
+                "hexColor": "#00FF7F"
             },
             {
                 "imageUrl": "gj-1214b",
                 "radius": 50.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#4682B4"
             },
             {
                 "imageUrl": "kepler-90e",
                 "radius": 35.0,
-                "hexColor": "#E3D599"
+                "hexColor": "#7F8C8D"
             },
             {
                 "imageUrl": "kepler-11b",
                 "radius": 45.0,
-                "hexColor": "#9B59B6"
+                "hexColor": "#A52A2A"
             }
         ]
     },
@@ -364,72 +364,72 @@
             {
                 "imageUrl": "kepler-11b",
                 "radius": 45.0,
-                "hexColor": "#E3D599"
+                "hexColor": "#A52A2A"
             },
             {
                 "imageUrl": "trappist-1g",
                 "radius": 45.0,
-                "hexColor": "#E67E22"
+                "hexColor": "#6C7A89"
             },
             {
                 "imageUrl": "hd-10180d",
                 "radius": 50.0,
-                "hexColor": "#F1C40F"
+                "hexColor": "#FFD700"
             },
             {
                 "imageUrl": "kepler-90g",
                 "radius": 60.0,
-                "hexColor": "#E67E22"
+                "hexColor": "#8E44AD"
             },
             {
                 "imageUrl": "planet-mercury",
                 "radius": 20.0,
-                "hexColor": "#F1C40F"
+                "hexColor": "#A8A8A8"
             },
             {
                 "imageUrl": "kepler-11b",
                 "radius": 45.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#A52A2A"
             },
             {
                 "imageUrl": "wasp-17b",
                 "radius": 90.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#FFB6C1"
             },
             {
                 "imageUrl": "planet-neptune",
                 "radius": 50.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#1F3A93"
             },
             {
                 "imageUrl": "trappist-1d",
                 "radius": 30.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#1E8BC3"
             },
             {
                 "imageUrl": "kepler-11b",
                 "radius": 45.0,
-                "hexColor": "#E3D599"
+                "hexColor": "#A52A2A"
             },
             {
                 "imageUrl": "gj-1214b",
                 "radius": 50.0,
-                "hexColor": "#E3D599"
+                "hexColor": "#4682B4"
             },
             {
                 "imageUrl": "kepler-11f",
                 "radius": 55.0,
-                "hexColor": "#1ABC9C"
+                "hexColor": "#FF7F50"
             },
             {
                 "imageUrl": "hd-10180f",
                 "radius": 50.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#00FFFF"
             },
             {
                 "imageUrl": "tau-ceti-e",
                 "radius": 50.0,
-                "hexColor": "#F1C40F"
+                "hexColor": "#00FF00"
             }
         ]
     },
@@ -441,77 +441,77 @@
             {
                 "imageUrl": "hd-10180c",
                 "radius": 50.0,
-                "hexColor": "#34495E"
+                "hexColor": "#87CEEB"
             },
             {
                 "imageUrl": "kepler-90b",
                 "radius": 50.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#D35400"
             },
             {
                 "imageUrl": "trappist-1b",
                 "radius": 42.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#CF000F"
             },
             {
                 "imageUrl": "hd-10180f",
                 "radius": 50.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#00FFFF"
             },
             {
                 "imageUrl": "hd-10180f",
                 "radius": 50.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#00FFFF"
             },
             {
                 "imageUrl": "trappist-1c",
                 "radius": 42.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#95A5A6"
             },
             {
                 "imageUrl": "trappist-1b",
                 "radius": 42.0,
-                "hexColor": "#F1C40F"
+                "hexColor": "#CF000F"
             },
             {
                 "imageUrl": "trappist-1c",
                 "radius": 42.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#95A5A6"
             },
             {
                 "imageUrl": "proxima-b",
                 "radius": 42.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#DC143C"
             },
             {
                 "imageUrl": "wasp-17b",
                 "radius": 90.0,
-                "hexColor": "#34495E"
+                "hexColor": "#FFB6C1"
             },
             {
                 "imageUrl": "kepler-11d",
                 "radius": 45.0,
-                "hexColor": "#1ABC9C"
+                "hexColor": "#008080"
             },
             {
                 "imageUrl": "hd-10180c",
                 "radius": 50.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#87CEEB"
             },
             {
                 "imageUrl": "trappist-1c",
                 "radius": 42.0,
-                "hexColor": "#F1C40F"
+                "hexColor": "#95A5A6"
             },
             {
                 "imageUrl": "planet-neptune",
                 "radius": 50.0,
-                "hexColor": "#34495E"
+                "hexColor": "#1F3A93"
             },
             {
                 "imageUrl": "planet-uranus",
                 "radius": 55.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#81CFE0"
             }
         ]
     },
@@ -523,82 +523,82 @@
             {
                 "imageUrl": "gliese-581d",
                 "radius": 50.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#000080"
             },
             {
                 "imageUrl": "kepler-11d",
                 "radius": 45.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#008080"
             },
             {
                 "imageUrl": "kepler-11b",
                 "radius": 45.0,
-                "hexColor": "#E3D599"
+                "hexColor": "#A52A2A"
             },
             {
                 "imageUrl": "planet-neptune",
                 "radius": 50.0,
-                "hexColor": "#9B59B6"
+                "hexColor": "#1F3A93"
             },
             {
                 "imageUrl": "kepler-452b",
                 "radius": 45.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#00FF7F"
             },
             {
                 "imageUrl": "hd-10180c",
                 "radius": 50.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#87CEEB"
             },
             {
                 "imageUrl": "planet-uranus",
                 "radius": 55.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#81CFE0"
             },
             {
                 "imageUrl": "trappist-1e",
                 "radius": 35.0,
-                "hexColor": "#E3D599"
+                "hexColor": "#16A085"
             },
             {
                 "imageUrl": "trappist-1h",
                 "radius": 30.0,
-                "hexColor": "#34495E"
+                "hexColor": "#9B59B6"
             },
             {
                 "imageUrl": "hd-10180f",
                 "radius": 50.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#00FFFF"
             },
             {
                 "imageUrl": "kepler-90h",
                 "radius": 80.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#34495E"
             },
             {
                 "imageUrl": "gj-1214b",
                 "radius": 50.0,
-                "hexColor": "#34495E"
+                "hexColor": "#4682B4"
             },
             {
                 "imageUrl": "gliese-581c",
                 "radius": 45.0,
-                "hexColor": "#E67E22"
+                "hexColor": "#FF0000"
             },
             {
                 "imageUrl": "trappist-1c",
                 "radius": 42.0,
-                "hexColor": "#E3D599"
+                "hexColor": "#95A5A6"
             },
             {
                 "imageUrl": "hd-10180c",
                 "radius": 50.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#87CEEB"
             },
             {
                 "imageUrl": "planet-neptune",
                 "radius": 50.0,
-                "hexColor": "#E67E22"
+                "hexColor": "#1F3A93"
             }
         ]
     },
@@ -610,87 +610,87 @@
             {
                 "imageUrl": "planet-neptune",
                 "radius": 50.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#1F3A93"
             },
             {
                 "imageUrl": "planet-uranus",
                 "radius": 55.0,
-                "hexColor": "#34495E"
+                "hexColor": "#81CFE0"
             },
             {
                 "imageUrl": "trappist-1g",
                 "radius": 45.0,
-                "hexColor": "#E3D599"
+                "hexColor": "#6C7A89"
             },
             {
                 "imageUrl": "planet-neptune",
                 "radius": 50.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#1F3A93"
             },
             {
                 "imageUrl": "planet-neptune",
                 "radius": 50.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#1F3A93"
             },
             {
                 "imageUrl": "tau-ceti-e",
                 "radius": 50.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#00FF00"
             },
             {
                 "imageUrl": "gliese-581d",
                 "radius": 50.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#000080"
             },
             {
                 "imageUrl": "kepler-11f",
                 "radius": 55.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#FF7F50"
             },
             {
                 "imageUrl": "trappist-1b",
                 "radius": 42.0,
-                "hexColor": "#1ABC9C"
+                "hexColor": "#CF000F"
             },
             {
                 "imageUrl": "trappist-1c",
                 "radius": 42.0,
-                "hexColor": "#E67E22"
+                "hexColor": "#95A5A6"
             },
             {
                 "imageUrl": "tau-ceti-f",
                 "radius": 40.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#7FFFD4"
             },
             {
                 "imageUrl": "proxima-b",
                 "radius": 42.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#DC143C"
             },
             {
                 "imageUrl": "kepler-11f",
                 "radius": 55.0,
-                "hexColor": "#E3D599"
+                "hexColor": "#FF7F50"
             },
             {
                 "imageUrl": "proxima-b",
                 "radius": 42.0,
-                "hexColor": "#34495E"
+                "hexColor": "#DC143C"
             },
             {
                 "imageUrl": "tau-ceti-f",
                 "radius": 40.0,
-                "hexColor": "#4B90E2"
+                "hexColor": "#7FFFD4"
             },
             {
                 "imageUrl": "kepler-90c",
                 "radius": 50.0,
-                "hexColor": "#A8A8A8"
+                "hexColor": "#F39C12"
             },
             {
                 "imageUrl": "trappist-1c",
                 "radius": 42.0,
-                "hexColor": "#E74C3C"
+                "hexColor": "#95A5A6"
             }
         ]
     }

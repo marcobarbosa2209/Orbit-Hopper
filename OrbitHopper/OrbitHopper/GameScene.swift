@@ -100,8 +100,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Spawner Logic
     private func makeInteractable(from config: SpawnableObject, sequenceIndex: Int) -> InteractableNode {
         switch config {
-        case .planet(let radius, let colliderRadius, let speedMult, let curve, let imagePath):
-            return PlanetNode(radius: radius, speedMultiplier: speedMult, colliderRadius: colliderRadius, curve: curve, imagePath: imagePath, sequenceIndex: sequenceIndex)
+        case .planet(let radius, let colliderRadius, let speedMult, let curve, let imagePath, let hexColor):
+            return PlanetNode(radius: radius, speedMultiplier: speedMult, colliderRadius: colliderRadius, curve: curve, imagePath: imagePath, hexColor: hexColor, sequenceIndex: sequenceIndex)
         case .spaceStation(let radius):
             return SpaceStationNode(radius: radius, sequenceIndex: sequenceIndex)
         }
@@ -234,6 +234,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let radius = CGFloat.random(in: 15...30)
             let meteor = MeteorNode(radius: radius, imagePath: "meteor")
             meteor.position = startPoint
+            
+            
+            
             self.addChild(meteor)
             
             // Fly across the screen at random speed

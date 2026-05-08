@@ -49,13 +49,21 @@ class InteractableNode: SKShapeNode {
 // MARK: - Planet Node
 class PlanetNode: InteractableNode {
     
-    init(radius: CGFloat, speedMultiplier: CGFloat, colliderRadius: CGFloat, curve: @escaping RotationCurve, imagePath: String? = nil, sequenceIndex: Int) {
+    init(radius: CGFloat, speedMultiplier: CGFloat, colliderRadius: CGFloat, curve: @escaping RotationCurve, imagePath: String? = nil, hexColor: String? = nil, sequenceIndex: Int) {
             super.init(radius: radius, sequenceIndex: sequenceIndex, colliderRadius: colliderRadius)
         
         // 1. Visuals: Draw a circle
         let circle = CGPath(ellipseIn: CGRect(x: -radius, y: -radius, width: radius * 2, height: radius * 2), transform: nil)
         self.path = circle
         self.strokeColor = .clear
+        
+        // 1.1 Add glow effect
+        if let hexString = hexColor, let color = UIColor(hex: hexString) {
+            let glowTexture = SKTexture.planetGlow(planetRadius: radius, color: color)
+            let glowNode = SKSpriteNode(texture: glowTexture)
+            glowNode.zPosition = -1
+            self.addChild(glowNode)
+        }
         
         // 2. Apply Texture OR Color
         if let imagePath, !imagePath.isEmpty {
@@ -275,6 +283,13 @@ class MeteorNode: SKShapeNode {
         self.strokeColor = .clear
         self.zPosition = 15
         
+        // 1.1 Add glow effect
+        let glowTexture = SKTexture.planetGlow(planetRadius: radius, color: UIColor(hex: "#A8A8A8") ?? .white)
+        let glowNode = SKSpriteNode(texture: glowTexture)
+        glowNode.zPosition = -1
+        self.addChild(glowNode)
+    
+        
         // Apply Texture
         let cropNode = SKCropNode()
         let mask = SKShapeNode(circleOfRadius: radius)
@@ -301,5 +316,51 @@ class MeteorNode: SKShapeNode {
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+}
+
+// MARK: - Core Graphics & Color Helpers
+extension UIColor {
+    convenience init?(hex: String) {
+        var hexSanitized = hex.trimmingCharacters(in: .whitespacesAndNewlines)
+        hexSanitized = hexSanitized.replacingOccurrences(of: "#", with: "")
+        var rgb: UInt64 = 0
+        Scanner(string: hexSanitized).scanHexInt64(&rgb)
+        guard hexSanitized.count == 6 else { return nil }
+        self.init(red: CGFloat((rgb & 0xFF0000) >> 16) / 255.0,
+                  green: CGFloat((rgb & 0x00FF00) >> 8) / 255.0,
+                  blue: CGFloat(rgb & 0x0000FF) / 255.0,
+                  alpha: 1.0)
+    }
+}
+
+extension SKTexture {
+    static func planetGlow(planetRadius: CGFloat, color: UIColor, radiusSize: CGFloat = 1.2) -> SKTexture {
+        // Total radius is 1.1x the planet's radius
+        let glowRadius = planetRadius * radiusSize
+        let size = CGSize(width: glowRadius * 2, height: glowRadius * 2)
+        
+        UIGraphicsBeginImageContextWithOptions(size, false, 0)
+        guard let context = UIGraphicsGetCurrentContext() else { return SKTexture() }
+        
+        let colorSpace = CGColorSpaceCreateDeviceRGB()
+        let centerColor = color.withAlphaComponent(0.5).cgColor
+        let edgeColor = color.withAlphaComponent(0.0).cgColor
+        
+        // Math to calculate the gradient
+        let planetEdgeLocation = CGFloat(1.0 / radiusSize)
+        
+        let locations: [CGFloat] = [0.0, planetEdgeLocation, 1.0]
+        let colors = [centerColor, centerColor, edgeColor] as CFArray
+        
+        guard let gradient = CGGradient(colorsSpace: colorSpace, colors: colors, locations: locations) else { return SKTexture() }
+        
+        let center = CGPoint(x: glowRadius, y: glowRadius)
+        context.drawRadialGradient(gradient, startCenter: center, startRadius: 0, endCenter: center, endRadius: glowRadius, options: [])
+        
+        let image = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+        
+        return SKTexture(image: image!)
     }
 }

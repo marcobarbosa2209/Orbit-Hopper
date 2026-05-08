@@ -32,7 +32,7 @@ struct CurveFactory {
 
 // 3. The exact object to spawn
 enum SpawnableObject {
-    case planet(radius: CGFloat, colliderRadius: CGFloat = -1, speedMultiplier: CGFloat, curve: RotationCurve, imagePath: String?)
+    case planet(radius: CGFloat, colliderRadius: CGFloat = -1, speedMultiplier: CGFloat, curve: RotationCurve, imagePath: String?, hexColor: String? = nil)
     case spaceStation(radius: CGFloat)
     // case meteor(radius: CGFloat, speed: CGVector)
 }
@@ -69,7 +69,8 @@ class EndlessDirector: GameModeDirector {
         return .planet(radius: randomRadius,
                        speedMultiplier: 1.0,
                        curve: curve,
-                       imagePath: randomImage)
+                       imagePath: randomImage,
+                       hexColor: ["#4B90E2", "#E74C3C", "#E3D599"].randomElement())
     }
     
     func getBlackHoleSpeed() -> CGFloat {
@@ -133,7 +134,8 @@ class CampaignDirector: GameModeDirector {
                        colliderRadius: planetData.effectiveColliderRadius,
                        speedMultiplier: difficulty,
                        curve: curve,
-                       imagePath: planetData.imageUrl)
+                       imagePath: planetData.imageUrl,
+                       hexColor: planetData.hexColor)
     }
     
     func getBlackHoleSpeed() -> CGFloat {
