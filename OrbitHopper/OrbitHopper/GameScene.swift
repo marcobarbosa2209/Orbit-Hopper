@@ -58,8 +58,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         cameraNode.addChild(background)
         
         // Initialize Game Mode
-        director = CampaignDirector(levelIndex: 0)
-        // director = EndlessDirector()
+        // director = CampaignDirector(levelIndex: 1)
+        director = EndlessDirector()
         
         // 2.2 Setup UI
         initializeUI(camera: cameraNode, view: self.view ?? SKView())

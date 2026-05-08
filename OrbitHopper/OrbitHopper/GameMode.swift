@@ -49,33 +49,63 @@ protocol GameModeDirector {
 class EndlessDirector: GameModeDirector {
     var score = 0
     var spawnCount = 0
-    let possibleTextures = ["planet-earth", "planet-mars"]
+    
+    var allPlanetsPool: [PlanetConfig] = []
+    var lastPlanet: PlanetConfig?
+    
+    init() {
+        // Load all levels from the JSON
+        let levels = LevelLoader.loadLevels()
+        
+        // flatMap to take all the arrays of planets inside the levels and squash them into one array
+        self.allPlanetsPool = levels.flatMap { $0.planets }
+        
+        // In case the JSON fails to load, give it one default planet so it doesn't crash
+        if self.allPlanetsPool.isEmpty {
+            self.allPlanetsPool = [PlanetConfig(imageUrl: "planet-earth", radius: 40, colliderRadius: nil, hexColor: "#4B90E2")]
+        }
+    }
     
     func generateNextObject() -> SpawnableObject? {
-        let randomRadius = CGFloat.random(in: 40...70)
-        let randomImage = possibleTextures.randomElement()
+        let constantChance = max(0.0, 1.0 - (CGFloat(score) * 0.025))
+        let roll = CGFloat.random(in: 0.0...1.0)
         
         let curve: RotationCurve
-        
-        // First 3 planets are easy and constant. After that, generate random planets
-        if self.spawnCount < 3 {
+        if roll <= constantChance {
+            // constant rotation
             curve = CurveFactory.generateConstant(speed: 1.0)
         } else {
+            // wave rotation
             curve = CurveFactory.generateRandomWave()
         }
         
         self.spawnCount += 1
         
-        return .planet(radius: randomRadius,
+        // Make sure we don't spawn the same planet twice
+        var randomPlanet: PlanetConfig
+        
+        while true {
+            randomPlanet = allPlanetsPool.randomElement()!
+            
+            if lastPlanet == nil || randomPlanet.imageUrl != lastPlanet!.imageUrl {
+                lastPlanet = randomPlanet
+                break
+            } else {
+                continue
+            }
+        }
+                
+        // Spawn planets from Levels.JSON data
+        return .planet(radius: randomPlanet.radius,
+                       colliderRadius: randomPlanet.effectiveColliderRadius,
                        speedMultiplier: 1.0,
                        curve: curve,
-                       imagePath: randomImage,
-                       hexColor: ["#4B90E2", "#E74C3C", "#E3D599"].randomElement())
+                       imagePath: randomPlanet.imageUrl,
+                       hexColor: randomPlanet.hexColor)
     }
     
     func getBlackHoleSpeed() -> CGFloat {
         let initialSpeed: CGFloat = 30.0
-        
         return initialSpeed + (CGFloat(score) * 2.0)
     }
     
@@ -110,7 +140,17 @@ class CampaignDirector: GameModeDirector {
         
         // Use the difficulty modifier from the JSON to make planets spin faster
         let difficulty = currentLevel?.difficultyModifier ?? 1.0
-        let curve = CurveFactory.generateRandomWave()
+        
+        // Rotation calculation
+        let constantChance = max(0.0, 2.0 - difficulty)
+        let roll = CGFloat.random(in: 0.0...1.0)
+        
+        let curve: RotationCurve
+        if roll <= constantChance {
+            curve = CurveFactory.generateConstant(speed: 1.0)
+        } else {
+            curve = CurveFactory.generateRandomWave()
+        }
         
         // 1. Check if all the planets in the array have been spawned
         if self.spawnCount >= level.planets.count {
