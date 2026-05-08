@@ -42,6 +42,7 @@ protocol GameModeDirector {
     var score: Int { get set }
     func generateNextObject() -> SpawnableObject?
     func getBlackHoleSpeed() -> CGFloat
+    func getMeteorChance() -> CGFloat
 }
 
 // 5. Endless Mode Logic
@@ -75,6 +76,12 @@ class EndlessDirector: GameModeDirector {
         let initialSpeed: CGFloat = 30.0
         
         return initialSpeed + (CGFloat(score) * 2.0)
+    }
+    
+    func getMeteorChance() -> CGFloat {
+        // Starts at 10% (0.1). Goes up by 1% (0.01) per score. Capped at 50% (0.5).
+        let calculatedChance = 0.1 + (CGFloat(score) * 0.01)
+        return min(calculatedChance, 0.5)
     }
 }
 
@@ -135,5 +142,9 @@ class CampaignDirector: GameModeDirector {
         
         // Use min to cap the speed
         return min(calculatedSpeed, maxSpeedCap)
+    }
+    
+    func getMeteorChance() -> CGFloat {
+        return currentLevel?.meteorChance ?? 0.0
     }
 }

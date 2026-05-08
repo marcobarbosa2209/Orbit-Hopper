@@ -8,7 +8,7 @@
   {
     "planetAmount": 10,
     "difficultyModifier": 1.1,
-    "meteorChance": 0.3,
+    "meteorChance": 0.15,
     "galaxyName": "Andromeda"
   }
 ]

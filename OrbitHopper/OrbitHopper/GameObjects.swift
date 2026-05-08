@@ -13,6 +13,7 @@ struct PhysicsCategory {
     static let ship: UInt32   = 0b1    // 1
     static let planet: UInt32 = 0b10   // 2
     static let blackHole: UInt32 = 0b100 // 4
+    static let meteor: UInt32 = 0b1000 // 8
 }
 
 // MARK: - Parent Class
@@ -234,6 +235,47 @@ class BlackHoleNode: SKShapeNode {
         
         // 3. Action: Slowly rotate
         let spin = SKAction.rotate(byAngle: .pi * 2, duration: 15.0)
+        self.run(SKAction.repeatForever(spin))
+    }
+    
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+// MARK: - Meteor Node
+class MeteorNode: SKShapeNode {
+    
+    init(radius: CGFloat, imagePath: String = "meteor") {
+        super.init()
+        
+        // 1. Visuals
+        let circle = CGPath(ellipseIn: CGRect(x: -radius, y: -radius, width: radius * 2, height: radius * 2), transform: nil)
+        self.path = circle
+        self.strokeColor = .clear
+        self.zPosition = 15
+        
+        // Apply Texture
+        let cropNode = SKCropNode()
+        let mask = SKShapeNode(circleOfRadius: radius)
+        mask.fillColor = .white
+        mask.strokeColor = .clear
+        cropNode.maskNode = mask
+        
+        let sprite = SKSpriteNode(imageNamed: imagePath)
+        sprite.size = CGSize(width: radius * 2, height: radius * 2)
+        cropNode.addChild(sprite)
+        self.addChild(cropNode)
+    
+        
+        // 2. Physics - Meteor doesn't get pushed, but detects the ship
+        self.physicsBody = SKPhysicsBody(circleOfRadius: radius)
+        self.physicsBody?.isDynamic = false
+        self.physicsBody?.categoryBitMask = PhysicsCategory.meteor
+        self.physicsBody?.contactTestBitMask = PhysicsCategory.ship
+        
+        // 3. Spin forever
+        let spin = SKAction.rotate(byAngle: .pi * 2, duration: 1.0)
         self.run(SKAction.repeatForever(spin))
     }
     

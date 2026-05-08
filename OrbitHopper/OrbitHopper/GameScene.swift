@@ -58,8 +58,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         cameraNode.addChild(background)
         
         // Initialize Game Mode
-        // director = CampaignDirector(levelIndex: 1)
-        director = EndlessDirector()
+        director = CampaignDirector(levelIndex: 1)
+        // director = EndlessDirector()
         
         // 2.2 Setup UI
         initializeUI(camera: cameraNode, view: self.view ?? SKView())
@@ -154,6 +154,97 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         highestSpawnY = spawnY
         
         return newObject
+    }
+    
+    // MARK: - Meteor System
+    func trySpawnMeteor() {
+        let chance = director.getMeteorChance()
+        let roll = CGFloat.random(in: 0.0...1.0)
+        
+        // 1. Did the meteor trigger?
+        guard roll <= chance else { return }
+        guard let next = nextInteractable else { return }
+        guard let current = currentInteractable else { return }
+        
+        // 2. Calculate the exact midpoint between planets
+        let midY = (current.position.y + next.position.y) / 2
+        
+        // 3. Decide if it flies Left-to-Right or Right-to-Left
+        let goRight = Bool.random()
+        let screenWidth = self.size.width
+        
+        // Use the camera's X position to find the true edges of the screen
+        let leftEdge = cameraNode.position.x - (screenWidth / 2) - 100
+        let rightEdge = cameraNode.position.x + (screenWidth / 2) + 100
+        
+        let startX: CGFloat = goRight ? leftEdge : rightEdge
+        let endX:   CGFloat = goRight ? rightEdge : leftEdge
+        
+        // Add a slight angle by varying the Y randomly
+        let startY = midY + CGFloat.random(in: -40...40)
+        let endY = midY + CGFloat.random(in: -40...40)
+        
+        let startPoint = CGPoint(x: startX, y: startY)
+        let endPoint = CGPoint(x: endX, y: endY)
+        
+        // Visuals
+        // 4. Draw the Warning Path (A dashed red line)
+        let path = CGMutablePath()
+        path.move(to: startPoint)
+        path.addLine(to: endPoint)
+        
+        let lineNode = SKShapeNode()
+        // Convert to dashed line
+        lineNode.path = path.copy(dashingWithPhase: 0, lengths: [15, 10])
+        lineNode.strokeColor = themeColor
+        lineNode.lineWidth = 2
+        lineNode.zPosition = 5
+        self.addChild(lineNode)
+        
+        // 5. The Flashing Alert Icon
+        let alertIcon = SKSpriteNode(imageNamed: "meteor-alert")
+        alertIcon.size = CGSize(width: 40, height: 40)
+        
+        let visibleLeftEdge = cameraNode.position.x - (screenWidth / 2)
+        let visibleRightEdge = cameraNode.position.x + (screenWidth / 2)
+        
+        let padding: CGFloat = 16 + (alertIcon.size.width / 2)
+        
+        let iconX = goRight ? (visibleLeftEdge + padding) : (visibleRightEdge - padding)
+                
+        alertIcon.position = CGPoint(x: iconX, y: startY)
+        alertIcon.zPosition = 100
+        self.addChild(alertIcon)
+        
+        let pulse = SKAction.sequence([
+            SKAction.fadeAlpha(to: 0.3, duration: 0.2),
+            SKAction.fadeAlpha(to: 1.0, duration: 0.2)
+        ])
+        alertIcon.run(SKAction.repeatForever(pulse))
+        
+        // Launch sequence
+        // 6. Wait X seconds, destroy UI, and launch the Meteor
+        let secondsToAppear = CGFloat.random(in:1.0...3.0)
+        let waitSequence = SKAction.wait(forDuration: secondsToAppear)
+        
+        let fireMeteor = SKAction.run {
+            lineNode.removeFromParent()
+            alertIcon.removeFromParent()
+            
+            let radius = CGFloat.random(in: 15...30)
+            let meteor = MeteorNode(radius: radius, imagePath: "meteor")
+            meteor.position = startPoint
+            self.addChild(meteor)
+            
+            // Fly across the screen at random speed
+            let meteorSpeed = CGFloat.random(in:0.5...1.5)
+            let fly = SKAction.move(to: endPoint, duration: meteorSpeed)
+            let cleanup = SKAction.removeFromParent()
+            
+            meteor.run(SKAction.sequence([fly, cleanup]))
+        }
+        
+        self.run(SKAction.sequence([waitSequence, fireMeteor]))
     }
     
     // MARK: - Game Loop
@@ -312,6 +403,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         ship.physicsBody?.categoryBitMask = PhysicsCategory.ship
         ship.physicsBody?.contactTestBitMask = PhysicsCategory.planet
         ship.physicsBody?.collisionBitMask = PhysicsCategory.none
+        ship.physicsBody?.contactTestBitMask = PhysicsCategory.planet | PhysicsCategory.meteor | PhysicsCategory.blackHole
         
         let launchForce: CGFloat = 8
         ship.physicsBody?.applyImpulse(CGVector(dx: direction.dx * launchForce, dy: direction.dy * launchForce))
@@ -343,10 +435,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         else if let station = otherNode as? SpaceStationNode {
             handleStationCollision(station)
         }
-        else {
-            // if let meteor = otherNode as? MeteorNode {
-            //     handleMeteorCollision(meteor)
-            // }
+        else if let meteor = otherNode as? MeteorNode {
+            handleMeteorCollision(meteor)
         }
     }
     
@@ -357,8 +447,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func handleMeteorCollision(_ meteor: SKNode) {
-        // TODO: Implement meteor logic (e.g., bounce off, take damage, or game over)
-        print("Hit a meteor!")
+        gameOver()
     }
     
     func handlePlanetCollision(_ planet: PlanetNode) {
@@ -396,6 +485,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self.attachShip(to: planet, atLocalPosition: perfectLocalPos)
             self.maintainPlanetBuffer()
             self.updateCamera()
+            self.trySpawnMeteor()
         })
     }
     
