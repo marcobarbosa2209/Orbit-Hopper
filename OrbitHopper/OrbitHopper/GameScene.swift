@@ -85,7 +85,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             .min(by: { $0.position.y < $1.position.y })
                 
         // Spawn Ship
-        ship = ShipNode(radius: 10)
+        ship = ShipNode(radius: 20)
         attachShip(to: currentInteractable, atLocalPosition: CGPoint(x: 0, y: startPlanet.radius + ship.radius))
         
         // Spawn Black Hole
@@ -266,8 +266,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let shipScenePos = ship.parent?.convert(ship.position, to: self) ?? ship.position
         
         if shipScenePos.y < blackHoleTopEdge {
-            gameOver()
-            return
+            triggerBlackHoleDeath()
         }
         
         updateBlackHoleDistance()
@@ -278,14 +277,32 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         for node in self.children {
             if let interactable = node as? InteractableNode {
                 if interactable.position.y < killLine {
-                    interactable.removeFromParent()
-                    print("Garbage Collected: Planet \(interactable.sequenceIndex)")
+                    if(interactable.name == "dying") {
+                        return
+                    }
+                    
+                    interactable.name = "dying" // Mark as dying
+                                        
+                    // Stop it from spinning and colliding
+                    interactable.physicsBody = nil
+                    interactable.removeAllActions()
+                    
+                    // Create the suck in animation
+                    let suckIn = SKAction.group([
+                        SKAction.move(to: blackHole.position, duration: 3),
+                        SKAction.scale(to: 0.0, duration: 3),
+                        SKAction.fadeOut(withDuration: 3)
+                    ])
+                    let remove = SKAction.removeFromParent()
+                    
+                    interactable.run(SKAction.sequence([suckIn, remove]))
+                    print("Planet destroyed")
                 }
             }
         }
         
         // 3. Only check bounds if the ship is flying
-        if ship.parent === self {
+        if ship.parent === self && ship.name != "dying" {
             
             let screenWidth = self.size.width
             let screenHeight = self.size.height
@@ -304,6 +321,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             if isOutOfBoundsX || isOutOfBoundsY {
                 gameOver()
             }
+            
+            if let velocity = ship.physicsBody?.velocity, velocity.dx != 0 || velocity.dy != 0 {
+                let velocityAngle = atan2(velocity.dy, velocity.dx)
+                ship.zRotation = velocityAngle - (.pi / 2)
+            }
         }
     }
     
@@ -320,6 +342,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // 2. Create a brand new, fresh copy of the game scene
         let newScene = GameScene(size: self.size)
         newScene.scaleMode = self.scaleMode
+        
+        self.view?.isUserInteractionEnabled = true
         
         // 3. Restart the game with a cool cinematic fade
         let transition = SKTransition.fade(with: .black, duration: 1.0)
@@ -405,6 +429,46 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.run(cinematicSequence)
     }
     
+    
+    // MARK: - Death Animations
+    func triggerBlackHoleDeath() {
+        // Prevent this from running multiple times
+        guard ship.name != "dying" else { return }
+        ship.name = "dying"
+        
+        // 1. Move the ship to the main scene if it's currently spinning on a planet
+        if ship.parent != self {
+            let scenePos = ship.parent?.convert(ship.position, to: self) ?? ship.position
+            ship.removeFromParent()
+            ship.position = scenePos
+            self.addChild(ship)
+        }
+        
+        // 2. Stop physics and interactions
+        ship.physicsBody = nil
+        ship.removeAllActions()
+        
+        // 3. The "Suck In" Animation
+        let suckIn = SKAction.group([
+            SKAction.move(to: blackHole.position, duration: 3),
+            SKAction.scale(to: 0.0, duration: 3),
+            SKAction.fadeOut(withDuration: 3),
+            SKAction.rotate(byAngle: .pi * 4, duration: 3)
+        ])
+        
+        // 4. Game over after action
+        let finishGameOver = SKAction.run {
+            self.gameOver()
+        }
+        
+        // Run "sequence"
+        ship.run(suckIn)
+        
+        let wait = SKAction.wait(forDuration: 1.5)
+        ship.run(SKAction.sequence([wait, finishGameOver]))
+    }
+
+    
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         launchShip()
     }
@@ -446,6 +510,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         if let pos = localPos {
             ship.position = pos
+            
+            let angle = atan2(pos.y, pos.x)
+            
+            // Subtract 90 degrees so the rocket points up
+            ship.zRotation = angle - (.pi / 2)
         }
         
         // Update tracker
@@ -483,6 +552,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         ship.physicsBody?.contactTestBitMask = PhysicsCategory.planet
         ship.physicsBody?.collisionBitMask = PhysicsCategory.none
         ship.physicsBody?.contactTestBitMask = PhysicsCategory.planet | PhysicsCategory.meteor | PhysicsCategory.blackHole
+        
+        let launchAngle = atan2(direction.dy, direction.dx)
+        ship.zRotation = launchAngle - (.pi / 2)
         
         let launchForce: CGFloat = 8
         ship.physicsBody?.applyImpulse(CGVector(dx: direction.dx * launchForce, dy: direction.dy * launchForce))
@@ -522,7 +594,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // MARK: - Specific Collision Handlers
     func handleBlackHoleCollision() {
         // The void caught the player
-        gameOver()
+        triggerBlackHoleDeath()
     }
     
     func handleMeteorCollision(_ meteor: SKNode) {

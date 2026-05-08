@@ -2,7 +2,7 @@
   {
     "planetAmount": 5,
     "difficultyModifier": 1.0,
-    "meteorChance": 0.1,
+    "meteorChance": 0.25,
     "galaxyName": "Milky Way"
   },
   {

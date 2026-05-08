@@ -111,9 +111,10 @@ class ShipNode: SKShapeNode {
         super.init()
         
         // 1. Visuals: Draw a small circle for the ship
-        let circle = CGPath(ellipseIn: CGRect(x: -radius, y: -radius, width: radius * 2, height: radius * 2), transform: nil)
-        self.path = circle
-        self.fillColor = .cyan
+        self.strokeColor = .clear
+        let sprite = SKSpriteNode(imageNamed: "rocket")
+        sprite.size = CGSize(width: radius * 2, height: radius * 2)
+        self.addChild(sprite)
         
         // 2. Physics: Dynamic collider
         self.physicsBody = SKPhysicsBody(circleOfRadius: radius)
