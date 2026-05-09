@@ -10,6 +10,8 @@ import SpriteKit
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
+    var gameState: GameState?
+    
     // Ship
     var ship: ShipNode!
     
@@ -66,19 +68,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // 2.1 Setup Background
         initializeStars(view: view)
         
-        // 1. Create a sprite the exact size of the screen
+        // 2.1.1. Create a sprite the exact size of the screen
         nebulaNode = SKSpriteNode(color: .black, size: self.size)
         
-        // 2. Load the shader
+        // 2.1.2. Load the shader
         let nebulaShader = SKShader(fileNamed: "Nebula.fsh")
         
-        // 3. Create a Swift to GLSL bridge variable to send the camera position
+        // 2.1.3. Create a Swift to GLSL bridge variable to send the camera position
         let cameraOffsetUniform = SKUniform(name: "u_camera_offset", vectorFloat2: SIMD2<Float>(0, 0))
         nebulaShader.uniforms = [cameraOffsetUniform]
         
-        // 4. Attach it
+        // 2.1.4. Attach it
         nebulaNode.shader = nebulaShader
-        nebulaNode.zPosition = -105 // Put it the stars
+        nebulaNode.zPosition = -105
         
         // Attach to the camera so it always covers the screen
         cameraNode.addChild(nebulaNode)
@@ -748,7 +750,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         scoreLabel.horizontalAlignmentMode = .center
         scoreLabel.verticalAlignmentMode = .center
         scoreLabel.zPosition = 1
-        scoreLabel.alpha = 0.2
+        scoreLabel.alpha = 0
         
         // Use 'view.bounds' so it perfectly matches user's phone screen dimensions
         let xPos = view.safeAreaInsets.left
@@ -807,6 +809,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         modeTitleLabel.verticalAlignmentMode = .center
         modeTitleLabel.position = CGPoint(x: 0, y: groupCenterY + (barHeight / 2) + gap + (modeTitleLabel.fontSize / 2))
         progressContainer.addChild(modeTitleLabel)
+        
+        gameState?.levelTitle = modeTitleLabel.text ?? ""
         
         let bgRect = CGRect(x: -barWidth/2, y: -barHeight/2, width: barWidth, height: barHeight)
         progressBarBG = SKShapeNode(rect: bgRect, cornerRadius: cornerRadius)
@@ -869,6 +873,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let bottomY = -(view.bounds.height / 2) + view.safeAreaInsets.bottom + 60
         distanceContainer.position = CGPoint(x: 0, y: bottomY)
         
+        distanceContainer.alpha = 0 // TODO: Remove once the SwiftUI is fully implemented
+        
         camera.addChild(distanceContainer)
     }
     
@@ -895,6 +901,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let displayPercent = Int(clampedPercent * 100)
             statusText = "\(displayPercent)% Progress"
             
+            gameState?.progress = clampedPercent
+            
         } else if director is EndlessDirector {
             // Endless Mode Logic
             let highScore = SaveManager.getHighScore()
@@ -909,6 +917,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 progressBarBG.strokeColor = .systemYellow
                 progressTextLabel.fontColor = .systemYellow
                 
+                gameState?.progress = 100
+                
             } else {
                 // Chasing the High Score.
                 // max(highScore, 1) to prevent dividing by zero on their very first game
@@ -916,9 +926,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 let percent = CGFloat(currentScore) / CGFloat(target)
                 clampedPercent = max(0.0, min(1.0, percent))
                 
+                gameState?.progress = clampedPercent
+                
                 statusText = "Chasing Record: \(highScore)"
             }
         }
+        
+        progressContainer.alpha = 0 // TODO: Remove once the SwiftUI is fully implemented
+        
         
         // 2. Draw the Fill Bar
         let barWidth: CGFloat = 280
@@ -957,9 +972,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // Only shows differences of 10 km
             let steppedDistance = (displayDistance / 10) * 10
             distanceLabel.text = "\(steppedDistance)km"
+            gameState?.distanceToBlackHole = steppedDistance
             
             lastDisplayedDistance = displayDistance
         }
+        
+        return
         
         // 2. Fading Logic
         // Define how close the void gets before the UI vanishes

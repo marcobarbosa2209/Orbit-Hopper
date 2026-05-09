@@ -32,7 +32,8 @@
             {
                 "imageUrl": "planet-saturn",
                 "radius": 75.0,
-                "hexColor": "#F1C40F"
+                "hexColor": "#F1C40F",
+                "colliderRadius" : 40.0
             },
             {
                 "imageUrl": "planet-uranus",

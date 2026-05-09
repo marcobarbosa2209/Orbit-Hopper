@@ -59,7 +59,7 @@ class PlanetNode: InteractableNode {
         
         // 1.1 Add glow effect
         if let hexString = hexColor, let color = UIColor(hex: hexString) {
-            let glowTexture = SKTexture.planetGlow(planetRadius: radius, color: color)
+            let glowTexture = SKTexture.planetGlow(planetRadius: colliderRadius, color: color)
             let glowNode = SKSpriteNode(texture: glowTexture)
             glowNode.zPosition = -1
             self.addChild(glowNode)
