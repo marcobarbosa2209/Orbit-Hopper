@@ -76,8 +76,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         cameraNode.addChild(nebulaNode)
         
         // Initialize Game Mode
-        director = CampaignDirector(levelIndex: 0)
-        // director = EndlessDirector()
+        // director = CampaignDirector(levelIndex: 1)
+        director = EndlessDirector()
         
         // Send current game mode title to SwiftUI
         if let campaign = director as? CampaignDirector, let level = campaign.currentLevel {
@@ -760,13 +760,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             
         } else if director is EndlessDirector {
             let highScore = SaveManager.getHighScore()
-            if currentScore > highScore {
-                clampedPercent = 1.0
-            } else {
-                let target = max(highScore, 1)
-                let percent = CGFloat(currentScore) / CGFloat(target)
-                clampedPercent = max(0.0, min(1.0, percent))
-            }
+            let target = max(highScore, 1)
+            let percent = CGFloat(currentScore) / CGFloat(target)
+            clampedPercent = percent
         }
         
         // Push the new percentage to SwiftUI

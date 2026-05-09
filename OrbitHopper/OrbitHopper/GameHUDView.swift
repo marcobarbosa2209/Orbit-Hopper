@@ -16,48 +16,90 @@ struct GameHUDView: View {
             
             // Score label
             Text("\(gameState.score)")
-                    .font(.custom("JetBrainsMono-Bold", size: 96))
-                    .foregroundColor(.white.opacity(0.15))
-                    .safeAreaPadding(.top)
-                    .padding(.top, 240)
-                    .allowsHitTesting(false)
+                .font(.custom("JetBrainsMono-Bold", size: 96))
+                .foregroundColor(.white.opacity(0.15))
+                .safeAreaPadding(.top)
+                .padding(.top, 240)
+                .allowsHitTesting(false)
             
             // Progress tracker
             VStack {
-                VStack(spacing: 8) {
-                    Text(gameState.levelTitle)
-                        .font(.custom("JetBrainsMono-ExtraBold", size: 20))
-                        .foregroundColor(themeColor)
+                
+                // HStack containing the Progress Card and Pause Button
+                HStack(spacing: 12) {
                     
-                    HStack(spacing: 8) {
-                        GeometryReader { geometry in
-                            ZStack(alignment: .leading) {
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(Color(red: 0.102, green: 0.137, blue: 0.145))
-                                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(themeColor, lineWidth: 2))
+                    // Left Card: Progress Tracker
+                    VStack(alignment: .leading, spacing: 12) {
+                        
+                        HStack {
+                            // Left side: Galaxy Name, truncating with ellipsis if too long
+                            Text(gameState.levelTitle.components(separatedBy: " // ").first ?? gameState.levelTitle)
+                                .font(.custom("JetBrainsMono-ExtraBold", size: 16))
+                                .foregroundColor(themeColor)
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                            
+                            if gameState.levelTitle.contains(" // ") {
+                                Spacer(minLength: 8)
                                 
-                                RoundedRectangle(cornerRadius: 6)
-                                    .fill(themeColor)
-                                    .frame(width: geometry.size.width * gameState.progress)
-                                    .animation(.spring(), value: gameState.progress)
+                                // Right side: Level Number
+                                Text("\(gameState.levelTitle.components(separatedBy: " // ").last ?? "")")
+                                    .font(.custom("JetBrainsMono-ExtraBold", size: 16))
+                                    .foregroundColor(themeColor)
+                                    .layoutPriority(1)
                             }
                         }
-                        .frame(width: 280, height: 12)
                         
-                        Text("\(Int(gameState.progress * 100))%")
-                            .font(.custom("Orbitron-Bold", size: 16))
-                            .foregroundColor(themeColor)
+                        HStack(spacing: 8) {
+                            GeometryReader { geometry in
+                                ZStack(alignment: .leading) {
+                                    // Background Track
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(Color(red: 0.102, green: 0.137, blue: 0.145))
+                                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(gameState.progress <= 1 ? themeColor : Color.yellow, lineWidth: 1))
+                                    
+                                    // Fill
+                                    RoundedRectangle(cornerRadius: 6)
+                                        .fill(gameState.progress <= 1 ? themeColor : Color.yellow)
+                                        .frame(width: geometry.size.width * min(1.0, gameState.progress))
+                                        .animation(.spring(), value: gameState.progress)
+                                }
+                            }
+                            .frame(height: 10)
+                            
+                            Text("\(Int(gameState.progress * 100))%")
+                                .font(.custom("Orbitron-Bold", size: 16))
+                                .foregroundColor(gameState.progress <= 1 ? themeColor : Color.yellow)
+                        }
                     }
+                    .padding(16)
+                    .background(Color.black.opacity(0.7))
+                    .cornerRadius(12)
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(themeColor, lineWidth: 1.5))
                     .allowsHitTesting(false)
+                    
+                    
+                    // Right Card: Pause Button
+                    Button(action: {
+                        print("Pause button tapped!")
+                        // TODO: Add pause button logic
+                    }) {
+                        Image(systemName: "pause")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundColor(themeColor)
+                            .frame(width: 84, height: 84)
+                            .background(Color.black.opacity(0.7))
+                            .cornerRadius(12)
+                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(themeColor, lineWidth: 1.5))
+                    }
+                    
                 }
-                .padding(.vertical, 16)
-                .frame(maxWidth: .infinity)
-                .background(Color.black.opacity(0.7))
-                .overlay(Rectangle().fill(themeColor.opacity(0.4)).frame(height: 1), alignment: .bottom)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
                 
                 Spacer() // Pushes top and bottom apart
                 
-                // Distance tracker
+                // Bottom Section: Distance Tracker ---
                 VStack(spacing: 4) {
                     Text("\(gameState.distanceToBlackHole)km")
                         .font(.custom("JetBrainsMono-Bold", size: 24))
@@ -70,6 +112,8 @@ struct GameHUDView: View {
                 .padding(.bottom, 20)
                 .opacity(gameState.distanceToBlackHole < 250 ? 0.0 : 1.0)
                 .animation(.easeInOut(duration: 0.3), value: gameState.distanceToBlackHole < 250)
+                .allowsHitTesting(false) // Ghost the distance tracker
+                
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .safeAreaPadding(.top)
