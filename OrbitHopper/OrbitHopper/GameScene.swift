@@ -7,13 +7,6 @@
 
 import SpriteKit
 
-struct StarData {
-    let node: SKSpriteNode
-    let parallaxSpeed: CGFloat
-}
-
-var backgroundStars: [StarData] = []
-var lastCameraY: CGFloat = 0
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
@@ -34,6 +27,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     var distanceLabel: SKLabelNode!
     var isTrackerVisible: Bool = true
     var lastDisplayedDistance: Int = -1
+    
+    // Background
+    var backgroundStars: [StarData] = []
+    var lastCameraY: CGFloat = 0
+    var nebulaNode: SKSpriteNode!
+    
+    struct StarData {
+        let node: SKSpriteNode
+        let parallaxSpeed: CGFloat
+    }
     
     let themeColor = UIColor(red: 0.45, green: 0.95, blue: 0.90, alpha: 1.0)
     
@@ -60,11 +63,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // 2. Setup Camera
         self.camera = cameraNode
         
-        // 2.1 Setup Background as child of camera
+        // 2.1 Setup Background
         initializeStars(view: view)
         
+        // 1. Create a sprite the exact size of the screen
+        nebulaNode = SKSpriteNode(color: .black, size: self.size)
+        
+        // 2. Load the shader
+        let nebulaShader = SKShader(fileNamed: "Nebula.fsh")
+        
+        // 3. Create a Swift to GLSL bridge variable to send the camera position
+        let cameraOffsetUniform = SKUniform(name: "u_camera_offset", vectorFloat2: SIMD2<Float>(0, 0))
+        nebulaShader.uniforms = [cameraOffsetUniform]
+        
+        // 4. Attach it
+        nebulaNode.shader = nebulaShader
+        nebulaNode.zPosition = -105 // Put it the stars
+        
+        // Attach to the camera so it always covers the screen
+        cameraNode.addChild(nebulaNode)
+        
         // Initialize Game Mode
-        director = CampaignDirector(levelIndex: 1)
+        director = CampaignDirector(levelIndex: 0)
         // director = EndlessDirector()
         
         // 2.2 Setup UI
@@ -95,7 +115,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         attachShip(to: currentInteractable, atLocalPosition: CGPoint(x: 0, y: startPlanet.colliderRadius + ship.radius))
         
         // Spawn Black Hole
-        blackHole = BlackHoleNode(radius: 800)
+        blackHole = BlackHoleNode(radius: 600)
         blackHole.position = CGPoint(x: view.bounds.minX, y: view.bounds.minY - blackHole.radius - 200)
         addChild(blackHole)
         
@@ -243,8 +263,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let meteor = MeteorNode(radius: radius, imagePath: "meteor")
             meteor.position = startPoint
             
-            
-            
             self.addChild(meteor)
             
             // Fly across the screen at random speed
@@ -277,8 +295,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // Push the star down based on its specific depth speed
             starData.node.position.y -= dy * starData.parallaxSpeed
             
-            // If the star falls completely off the bottom of the screen, wrap it to the top!
-            // We add 20 pixels of buffer so it doesn't pop in visibly.
+            // If the star falls completely off the bottom of the screen, warp it to the top
+            // Add 20 pixels of buffer so it doesn't pop in visibly
             if starData.node.position.y < -screenHeight / 2 - 20 {
                 starData.node.position.y += screenHeight + 40
                 
@@ -290,6 +308,17 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 starData.node.position.y -= screenHeight + 40
                 starData.node.position.x = CGFloat.random(in: -screenWidth/2...screenWidth/2)
             }
+        }
+        
+        if let shader = nebulaNode.shader, let offsetUniform = shader.uniformNamed("u_camera_offset") {
+            // Read the current offset
+            var currentOffset = offsetUniform.vectorFloat2Value
+            
+            // Push the nebula gas down very slightly
+            currentOffset.y += Float(dy) * 0.0001
+            
+            // Send the updated math back to the GPU
+            offsetUniform.vectorFloat2Value = currentOffset
         }
         
         // 1. Move black whole upwards
@@ -315,7 +344,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             if let interactable = node as? InteractableNode {
                 if interactable.position.y < killLine {
                     if(interactable.name == "dying") {
-                        return
+                        continue
                     }
                     
                     interactable.name = "dying" // Mark as dying
@@ -328,7 +357,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                     let suckIn = SKAction.group([
                         SKAction.move(to: blackHole.position, duration: 3),
                         SKAction.scale(to: 0.0, duration: 3),
-                        SKAction.fadeOut(withDuration: 3)
                     ])
                     let remove = SKAction.removeFromParent()
                     
@@ -957,15 +985,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let screenHeight = view.bounds.height
         
         // 1. Pre-render 3 glow textures to save CPU power
-        let baseRadius: CGFloat = 2.0
-        let whiteGlow = SKTexture.planetGlow(planetRadius: baseRadius, color: .white, radiusSize: 4.0)
-        let greyGlow = SKTexture.planetGlow(planetRadius: baseRadius, color: UIColor(hex: "#4B90E2") ?? .gray, radiusSize: 4.0)
+        let baseRadius: CGFloat = 1.0
+        let whiteGlow = SKTexture.planetGlow(planetRadius: baseRadius, color: .white, radiusSize: 2.0)
+        let greyGlow = SKTexture.planetGlow(planetRadius: baseRadius, color: .gray, radiusSize: 2.0)
         
         // Weight the array so white stars are much more common
         let textures = [whiteGlow, whiteGlow, whiteGlow, greyGlow, greyGlow]
         
-        // 2. Generate 150 stars
-        for _ in 0..<150 {
+        // 2. Generate 50 stars
+        for _ in 0..<50 {
             let depthRoll = CGFloat.random(in: 0...1)
             let scale: CGFloat
             let parallaxSpeed: CGFloat
@@ -990,7 +1018,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             }
             
             // 3. Create the star node
-            let starTexture = whiteGlow
+            let starTexture = textures.randomElement()!
             let star = SKSpriteNode(texture: starTexture)
             star.setScale(scale)
             

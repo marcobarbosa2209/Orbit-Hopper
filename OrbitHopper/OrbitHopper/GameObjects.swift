@@ -219,7 +219,7 @@ struct LevelLoader {
 class BlackHoleNode: SKShapeNode {
     let radius: CGFloat
     let imagePath: String = "black-hole"
-    
+
     init(radius: CGFloat) {
         self.radius = radius
         super.init()
@@ -229,41 +229,23 @@ class BlackHoleNode: SKShapeNode {
         self.path = circle
         
         self.strokeColor = .clear
+        self.fillColor = .clear
         
-        // 2. Apply Texture OR Color
-        if !imagePath.isEmpty {
-            // A. Create the Crop Node
-            let cropNode = SKCropNode()
-            
-            // B. Create the mask shape.
-            let mask = SKShapeNode(circleOfRadius: radius)
-            mask.fillColor = .white
-            mask.strokeColor = .clear
-            cropNode.maskNode = mask
-            
-            // C. Create the actual Earth sprite and put it INSIDE the crop node
-            let sprite = SKSpriteNode(imageNamed: imagePath)
-            sprite.size = CGSize(width: radius * 2, height: radius * 2)
-            cropNode.addChild(sprite)
-            
-            // D. Add the Crop Node to the Planet
-            self.addChild(cropNode)
-            
-        } else {
-            // Fallback if no image is provided
-            self.fillColor = .systemPurple
-        }
+        // Create a square sprite that covers the radius
+        let shaderNode = SKSpriteNode(color: .black, size: CGSize(width: radius * 2, height: radius * 2))
         
+        // Load the GLSL code
+        let blackHoleShader = SKShader(fileNamed: "BlackHole.fsh")
+        shaderNode.shader = blackHoleShader
+        shaderNode.zPosition = -1
         
-        // 2. Physics: Triggers collisions
+        self.addChild(shaderNode)
+        
+        // 3. Physics: Triggers collisions
         self.physicsBody = SKPhysicsBody(circleOfRadius: radius * 0.8)
         self.physicsBody?.isDynamic = false
         self.physicsBody?.categoryBitMask = PhysicsCategory.blackHole
         self.physicsBody?.contactTestBitMask = PhysicsCategory.ship
-        
-        // 3. Action: Slowly rotate
-        let spin = SKAction.rotate(byAngle: .pi * 2, duration: 15.0)
-        self.run(SKAction.repeatForever(spin))
     }
     
     required init?(coder aDecoder: NSCoder) {
