@@ -20,6 +20,7 @@ struct GameHUDView: View {
                     .foregroundColor(.white.opacity(0.15))
                     .safeAreaPadding(.top)
                     .padding(.top, 240)
+                    .allowsHitTesting(false)
             
             // Progress tracker
             VStack {
@@ -47,6 +48,7 @@ struct GameHUDView: View {
                             .font(.custom("Orbitron-Bold", size: 16))
                             .foregroundColor(themeColor)
                     }
+                    .allowsHitTesting(false)
                 }
                 .padding(.vertical, 16)
                 .frame(maxWidth: .infinity)
@@ -55,7 +57,7 @@ struct GameHUDView: View {
                 
                 Spacer() // Pushes top and bottom apart
                 
-                // --- BOTTOM SECTION ---
+                // Distance tracker
                 VStack(spacing: 4) {
                     Text("\(gameState.distanceToBlackHole)km")
                         .font(.custom("JetBrainsMono-Bold", size: 24))
@@ -69,8 +71,6 @@ struct GameHUDView: View {
                 .opacity(gameState.distanceToBlackHole < 250 ? 0.0 : 1.0)
                 .animation(.easeInOut(duration: 0.3), value: gameState.distanceToBlackHole < 250)
             }
-            // --- THE LAYOUT FIX ---
-            // This forces the VStack to take up the entire screen, pushing the Spacer to the max
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .safeAreaPadding(.top)
         }

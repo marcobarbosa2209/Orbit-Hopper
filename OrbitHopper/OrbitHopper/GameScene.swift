@@ -18,18 +18,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Camera
     let cameraNode = SKCameraNode()
     
-    // UI
-    var scoreLabel: SKLabelNode!
-    var progressContainer: SKShapeNode!
-    var modeTitleLabel: SKLabelNode!
-    var progressBarBG: SKShapeNode!
-    var progressBarFill: SKShapeNode!
-    var progressTextLabel: SKLabelNode!
-    var distanceContainer: SKNode!
-    var distanceLabel: SKLabelNode!
-    var isTrackerVisible: Bool = true
-    var lastDisplayedDistance: Int = -1
-    
     // Background
     var backgroundStars: [StarData] = []
     var lastCameraY: CGFloat = 0
@@ -48,6 +36,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // Object Management
     var currentInteractable: InteractableNode!
     var highestSpawnY: CGFloat = 0
+    var highestSpawnX: CGFloat = 0
     var nextInteractable: InteractableNode?
     var objectsSpawnedCount: Int = 0
     
@@ -64,6 +53,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // 2. Setup Camera
         self.camera = cameraNode
+        self.addChild(cameraNode)
         
         // 2.1 Setup Background
         initializeStars(view: view)
@@ -89,8 +79,13 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         director = CampaignDirector(levelIndex: 0)
         // director = EndlessDirector()
         
-        // 2.2 Setup UI
-        initializeUI(camera: cameraNode, view: self.view ?? SKView())
+        // Send current game mode title to SwiftUI
+        if let campaign = director as? CampaignDirector, let level = campaign.currentLevel {
+                let levelNumber = String(format: "%03d", campaign.currentLevelIndex + 1)
+                gameState?.levelTitle = "\(level.galaxyName.uppercased()) // LEVEL \(levelNumber)"
+            } else {
+                gameState?.levelTitle = "ENDLESS MODE // HI-SCORE"
+            }
         
         // Manually spawn the very first starting planet before the spawner has a reference point.
         let startConfig = director.generateNextObject()
@@ -103,6 +98,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         currentInteractable = startPlanet
         highestSpawnY = startPlanet.position.y
+        highestSpawnX = startPlanet.position.x
         
         // Generate the first targets
         maintainPlanetBuffer()
@@ -159,29 +155,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let newObject = makeInteractable(from: config, sequenceIndex: objectsSpawnedCount)
         
-        // 1. Ask the current planet for its location
-        let prevObjectX = currentInteractable.position.x
-        
-        // 2. Define how far we can drift horizontally from the previous point (X-Variation).
-        let xVariation: CGFloat = 200
+        // 1. Define how far the spawn can drift horizontally from the previous spawn point.
+        let xVariation: CGFloat = 180
         let randomXOffset = CGFloat.random(in: -xVariation...xVariation)
-        let targetX = prevObjectX + randomXOffset
+         
+        // 2. Add the offset to the last spawned X coordinate
+        let finalX = highestSpawnX + randomXOffset
         
-        // 3. Define the screen width. self.size.width will work well.
-        let screenWidth = self.size.width
-        let minX: CGFloat = 80
-        let maxX = screenWidth - randomXOffset
-        
-        // Ensure the final position is always within [minX, maxX]
-        let finalX = max(minX, min(maxX, targetX))
-        
-        // Place it from 250 to 300 pixels above the highest object
+        // 3. Place it from 250 to 300 pixels above the highest object
         let spawnY = highestSpawnY + CGFloat.random(in: 250...300)
         
         newObject.position = CGPoint(x: finalX, y: spawnY)
         addChild(newObject)
         
+        // 4. Update the highest trackers so the next planet in the loop builds off this one
         highestSpawnY = spawnY
+        highestSpawnX = finalX
         
         return newObject
     }
@@ -198,14 +187,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // 2. Calculate the exact midpoint between planets
         let midY = (current.position.y + next.position.y) / 2
+        let midX = (current.position.x + next.position.x) / 2
         
         // 3. Decide if it flies Left-to-Right or Right-to-Left
         let goRight = Bool.random()
         let screenWidth = self.size.width
         
         // Use the camera's X position to find the true edges of the screen
-        let leftEdge = cameraNode.position.x - (screenWidth / 2) - 100
-        let rightEdge = cameraNode.position.x + (screenWidth / 2) + 100
+        let leftEdge = midX - (screenWidth / 2) - 150
+        let rightEdge = midX + (screenWidth / 2) + 150
         
         let startX: CGFloat = goRight ? leftEdge : rightEdge
         let endX:   CGFloat = goRight ? rightEdge : leftEdge
@@ -235,8 +225,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let alertIcon = SKSpriteNode(imageNamed: "meteor-alert")
         alertIcon.size = CGSize(width: 40, height: 40)
         
-        let visibleLeftEdge = cameraNode.position.x - (screenWidth / 2)
-        let visibleRightEdge = cameraNode.position.x + (screenWidth / 2)
+        let visibleLeftEdge = midX - (screenWidth / 2)
+        let visibleRightEdge = midX + (screenWidth / 2)
         
         let padding: CGFloat = 16 + (alertIcon.size.width / 2)
         
@@ -327,11 +317,28 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let currentSpeed = director.getBlackHoleSpeed()
         blackHole.position.y += currentSpeed * CGFloat(dt)
         
-        // Death check
-        let blackHoleTopEdge = blackHole.position.y + blackHole.radius
-        
         // Safely find where the ship is in the scene, even if it's attached to a planet
         let shipScenePos = ship.parent?.convert(ship.position, to: self) ?? ship.position
+        
+        let targetX: CGFloat
+        if ship.parent is InteractableNode {
+            // If attached to a planet, track the planet's center so the black hole doesn't wobble
+            targetX = currentInteractable.position.x
+        } else {
+            // If flying, track the ship itself
+            targetX = shipScenePos.x
+        }
+        
+        // Calculate the distance on the X-axis
+        let xDifference = targetX - blackHole.position.x
+        
+        let followSpeed: CGFloat = 1.5
+        
+        // Apply smooth Lerp movement
+        blackHole.position.x += xDifference * followSpeed * CGFloat(dt)
+        
+        // Death check
+        let blackHoleTopEdge = blackHole.position.y + blackHole.radius
         
         if shipScenePos.y < blackHoleTopEdge {
             triggerBlackHoleDeath()
@@ -410,6 +417,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let newScene = GameScene(size: self.size)
         newScene.scaleMode = self.scaleMode
         
+        // 2.1. Pass the SwiftUI bridge from the old scene into the new scene
+        newScene.gameState = self.gameState
+        
+        
+        // 2.2 Reset game state
+        self.gameState?.score = 0
+        self.gameState?.progress = 0.0
+        self.gameState?.distanceToBlackHole = 0
+        
         self.view?.isUserInteractionEnabled = true
         
         // 3. Restart the game with a cool cinematic fade
@@ -451,12 +467,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             station.run(moveUp)
         }
         
-        // Action D: Hide HUD
-        let hideHUD = SKAction.run {
-            self.scoreLabel.run(SKAction.fadeOut(withDuration: 0.3))
-            self.distanceContainer.run(SKAction.fadeOut(withDuration: 0.3))
-        }
-        
         // Action E: Pop up the "LEVEL COMPLETE" UI
         let showUI = SKAction.run {
             let winLabel = SKLabelNode(fontNamed: "JetBrainsMono-ExtraBold")
@@ -489,7 +499,6 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             waitLong,      // Wait for the station to fully stop
             blastOff,
             waitShort,     // Wait for the station to get some speed before showing text
-            hideHUD,
             showUI
         ])
         
@@ -675,8 +684,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // 1. Score point if we moved forward
         if planet.sequenceIndex > director.score {
             director.score = planet.sequenceIndex
-            
-            updateScoreLabel(score: director.score)
+            gameState?.score = director.score
         }
         
         // Update the tracker
@@ -716,8 +724,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // 1. Score point if we moved forward
         if station.sequenceIndex > director.score {
             director.score = station.sequenceIndex
-            
-            updateScoreLabel(score: director.score)
+            gameState?.score = director.score
         }
         
         // 2. Do Math to snap perfectly to the edge
@@ -739,262 +746,53 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             self.levelComplete(station: station)
         })
     }
-    
-    // MARK: - UI functions
-    func initializeUI(camera: SKCameraNode, view: SKView) {
-        // Score label
-        scoreLabel = SKLabelNode(fontNamed: "JetBrainsMono-Bold")
-        scoreLabel.text = "0"
-        scoreLabel.fontSize = 96
-        scoreLabel.fontColor = .white
-        scoreLabel.horizontalAlignmentMode = .center
-        scoreLabel.verticalAlignmentMode = .center
-        scoreLabel.zPosition = 1
-        scoreLabel.alpha = 0
         
-        // Use 'view.bounds' so it perfectly matches user's phone screen dimensions
-        let xPos = view.safeAreaInsets.left
-        let yPos = view.safeAreaInsets.top - 20
-        scoreLabel.position = CGPoint(x: xPos, y: yPos)
-        
-        // Add it to the camera
-        cameraNode.addChild(scoreLabel)
-
-        addChild(cameraNode)
-        
-        // Progress Container
-        // 1. Define how big the dark background panel should be
-        let panelWidth: CGFloat = view.window?.screen.bounds.width ?? view.bounds.width
-        let panelHeight: CGFloat = 160
-        let panelRect = CGRect(x: -panelWidth/2, y: -panelHeight/2, width: panelWidth, height: panelHeight)
-        
-        // 2. Initialize it as a rounded shape node!
-        progressContainer = SKShapeNode(rect: panelRect)
-        
-        // 3. Apply 70% opacity black background
-        progressContainer.fillColor = .black.withAlphaComponent(0.7)
-        progressContainer.strokeColor = .clear
-        progressContainer.zPosition = 100
-        
-        let bottomBorder = SKSpriteNode(color: themeColor.withAlphaComponent(0.4), size: CGSize(width: panelWidth, height: 1))
-        bottomBorder.position = CGPoint(x: 0, y: -panelHeight / 2)
-        progressContainer.addChild(bottomBorder)
-        
-        // Position it at the top of the screen
-        let topY = (view.bounds.height / 2) - (panelHeight / 2)
-        progressContainer.position = CGPoint(x: 0, y: topY)
-        camera.addChild(progressContainer)
-        
-        let topPadding = progressContainer.bounds.midY - 40;
-        
-        // Layout Constants
-        let gap: CGFloat = 10
-        let barWidth: CGFloat = 280
-        let barHeight: CGFloat = 12
-        let cornerRadius: CGFloat = 6
-        
-        let groupCenterY: CGFloat = topPadding + 20
-        
-        // Title Label
-        modeTitleLabel = SKLabelNode(fontNamed: "JetBrainsMono-ExtraBold")
-        if director is EndlessDirector {
-            modeTitleLabel.text = "ENDLESS MODE // HI-SCORE"
-        } else if let campaign = director as? CampaignDirector,
-                  let level = campaign.currentLevel {
-            let levelNumber = String(format: "%03d", campaign.currentLevelIndex + 1)
-            modeTitleLabel.text = "\(level.galaxyName.uppercased()) // LEVEL \(levelNumber)"
-        }
-        modeTitleLabel.fontSize = 18
-        modeTitleLabel.fontColor = themeColor
-        modeTitleLabel.verticalAlignmentMode = .center
-        modeTitleLabel.position = CGPoint(x: 0, y: groupCenterY + (barHeight / 2) + gap + (modeTitleLabel.fontSize / 2))
-        progressContainer.addChild(modeTitleLabel)
-        
-        gameState?.levelTitle = modeTitleLabel.text ?? ""
-        
-        let bgRect = CGRect(x: -barWidth/2, y: -barHeight/2, width: barWidth, height: barHeight)
-        progressBarBG = SKShapeNode(rect: bgRect, cornerRadius: cornerRadius)
-        progressBarBG.strokeColor = themeColor
-        progressBarBG.lineWidth = 2
-        progressBarBG.fillColor = UIColor(red: 0.102, green: 0.137, blue: 0.145, alpha: 1.0)
-        progressBarBG.position = CGPoint(x: 0, y: groupCenterY)
-        progressContainer.addChild(progressBarBG)
-        
-        // 3. Progress Bar Fill
-        // Position this at the far left edge of the background so it grows to the right
-        progressBarFill = SKShapeNode()
-        progressBarFill.fillColor = themeColor
-        progressBarFill.strokeColor = .clear
-        progressBarFill.position = CGPoint(x: -barWidth/2, y: groupCenterY - (barHeight / 2))
-        progressContainer.addChild(progressBarFill)
-        
-        // 4. Progress Text Label ("60% Progress")
-        progressTextLabel = SKLabelNode(fontNamed: "Orbitron-Bold")
-        progressTextLabel.text = "0% Progress"
-        progressTextLabel.fontSize = 16
-        progressTextLabel.fontColor = themeColor
-        progressTextLabel.position = CGPoint(x: 0, y: groupCenterY - (barHeight / 2) - gap - (progressTextLabel.fontSize))
-        progressContainer.addChild(progressTextLabel)
-        
-        // Call this once to set the initial visual state
-        updateProgress()
-        
-        // Black Hole distance
-        distanceContainer = SKNode()
-        distanceContainer.zPosition = 100
-        
-        // 1. The Distance Label
-        distanceLabel = SKLabelNode(fontNamed: "JetBrainsMono-Bold")
-        distanceLabel.text = "250km"
-        distanceLabel.fontSize = 24
-        distanceLabel.fontColor = themeColor
-        distanceLabel.verticalAlignmentMode = .center
-        distanceContainer.addChild(distanceLabel)
-        
-        // 2. Draw the Downward Arrow using a Path (later update to use SVG)
-        let arrowPath = CGMutablePath()
-        arrowPath.move(to: CGPoint(x: 0, y: 10))
-        arrowPath.addLine(to: CGPoint(x: 0, y: -15))
-        arrowPath.move(to: CGPoint(x: -10, y: -5))
-        arrowPath.addLine(to: CGPoint(x: 0, y: -15))
-        arrowPath.addLine(to: CGPoint(x: 10, y: -5))
-        
-        let arrowIcon = SKShapeNode(path: arrowPath)
-        arrowIcon.strokeColor = themeColor
-        arrowIcon.lineWidth = 4
-        arrowIcon.lineCap = .round
-        arrowIcon.lineJoin = .round
-        
-        // Gap of 15px below the text
-        arrowIcon.position = CGPoint(x: 0, y: -15 - (distanceLabel.fontSize / 2))
-        distanceContainer.addChild(arrowIcon)
-        
-        // 3. Position the container at the bottom center
-        let bottomY = -(view.bounds.height / 2) + view.safeAreaInsets.bottom + 60
-        distanceContainer.position = CGPoint(x: 0, y: bottomY)
-        
-        distanceContainer.alpha = 0 // TODO: Remove once the SwiftUI is fully implemented
-        
-        camera.addChild(distanceContainer)
-    }
-    
-    func updateScoreLabel (score: Int) {
-        scoreLabel.text = "\(score)"
-    }
-    
     func updateProgress() {
-        // Safely exit if the director hasn't been loaded yet
         guard let director = director else { return }
         
         let currentScore = director.score
         var clampedPercent: CGFloat = 0.0
-        var statusText = ""
         
-        // 1. Calculate Logic Based on Game Mode
         if let campaign = director as? CampaignDirector {
-            // Campaign Mode Logic
-            // Get the target amount, default to 1 to avoid crashes if level is missing
             let targetScore = campaign.currentLevel?.planets.count ?? 1
             let percent = CGFloat(currentScore) / CGFloat(targetScore)
             clampedPercent = max(0.0, min(1.0, percent))
             
-            let displayPercent = Int(clampedPercent * 100)
-            statusText = "\(displayPercent)% Progress"
-            
-            gameState?.progress = clampedPercent
-            
         } else if director is EndlessDirector {
-            // Endless Mode Logic
             let highScore = SaveManager.getHighScore()
-            
             if currentScore > highScore {
-                // Surpassed High Score, bar is 100% full.
                 clampedPercent = 1.0
-                statusText = "NEW HI-SCORE: \(currentScore)!"
-                
-                // Change the bar color to gold/yellow when player breaks the record
-                progressBarFill.fillColor = .systemYellow
-                progressBarBG.strokeColor = .systemYellow
-                progressTextLabel.fontColor = .systemYellow
-                
-                gameState?.progress = 100
-                
             } else {
-                // Chasing the High Score.
-                // max(highScore, 1) to prevent dividing by zero on their very first game
                 let target = max(highScore, 1)
                 let percent = CGFloat(currentScore) / CGFloat(target)
                 clampedPercent = max(0.0, min(1.0, percent))
-                
-                gameState?.progress = clampedPercent
-                
-                statusText = "Chasing Record: \(highScore)"
             }
         }
         
-        progressContainer.alpha = 0 // TODO: Remove once the SwiftUI is fully implemented
-        
-        
-        // 2. Draw the Fill Bar
-        let barWidth: CGFloat = 280
-        let barHeight: CGFloat = 12
-        let cornerRadius: CGFloat = 6
-        
-        let fillWidth = barWidth * clampedPercent
-        
-        if fillWidth > 0 {
-            let fillRect = CGRect(x: 0, y: 0, width: fillWidth, height: barHeight)
-            progressBarFill.path = CGPath(roundedRect: fillRect, cornerWidth: cornerRadius, cornerHeight: cornerRadius, transform: nil)
-            progressBarFill.isHidden = false
-        } else {
-            progressBarFill.isHidden = true
-        }
-        
-        // 3. Update the Text
-        progressTextLabel.text = statusText
+        // Push the new percentage to SwiftUI
+        gameState?.progress = clampedPercent
     }
     
     func updateBlackHoleDistance() {
         guard let blackHole = blackHole else { return }
         
-        // 1. Calculate the exact distance
-        let playerPos = currentInteractable.position
+        let playerPos: CGPoint
+        if ship.parent is InteractableNode {
+            // If attached to a planet, track the planet's position so distance doesn't wobble
+            playerPos = currentInteractable.position
+        } else {
+            // If flying, track the ship itself
+            playerPos = ship.position
+        }
+        
         let blackHoleTopEdge = blackHole.position.y + blackHole.radius
-        
-        // Ensure distance doesn't drop below 0
         let rawDistance = max(0, playerPos.y - blackHoleTopEdge)
-        
-        let displayDistance = Int(rawDistance)
                 
-        // Only update the actual text node if the number changed
-        if displayDistance != lastDisplayedDistance {
-            
-            // Only shows differences of 10 km
-            let steppedDistance = (displayDistance / 10) * 10
-            distanceLabel.text = "\(steppedDistance)km"
-            gameState?.distanceToBlackHole = steppedDistance
-            
-            lastDisplayedDistance = displayDistance
-        }
+        // Only shows differences of 10 km
+        let steppedDistance = (Int(rawDistance) / 10) * 10
         
-        return
-        
-        // 2. Fading Logic
-        // Define how close the void gets before the UI vanishes
-        let fadeThreshold: CGFloat = 250
-        
-        if rawDistance < fadeThreshold && isTrackerVisible {
-            // hide if it's too close
-            isTrackerVisible = false
-            distanceContainer.removeAllActions()
-            distanceContainer.run(SKAction.fadeOut(withDuration: 0.3))
-            
-        } else if rawDistance >= fadeThreshold && !isTrackerVisible {
-            // show again if it's safe
-            isTrackerVisible = true
-            distanceContainer.removeAllActions()
-            distanceContainer.run(SKAction.fadeIn(withDuration: 0.3))
-        }
+        // Send to SwiftUI
+        gameState?.distanceToBlackHole = steppedDistance
     }
     
     // MARK: - Starfield Generation
