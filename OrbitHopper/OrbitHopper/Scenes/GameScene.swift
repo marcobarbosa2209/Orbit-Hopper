@@ -653,17 +653,47 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let launchForce: CGFloat = 8
         ship.physicsBody?.applyImpulse(CGVector(dx: direction.dx * launchForce, dy: direction.dy * launchForce))
-        
-        // Trace an invisible line 3000 pixels in front of the ship
-        let rayEnd = CGPoint(x: shipScenePos.x + direction.dx * 3000, y: shipScenePos.y + direction.dy * 3000)
+    
+        // Thicker raycast
         var willHitSomething = false
         
-        self.physicsWorld.enumerateBodies(alongRayStart: shipScenePos, end: rayEnd) { body, point, normal, stop in
-            if body.categoryBitMask == PhysicsCategory.planet || body.categoryBitMask == PhysicsCategory.meteor || body.categoryBitMask == PhysicsCategory.blackHole {
-                willHitSomething = true
-                stop.pointee = true // Found a target, stop search
+        // 1. Calculate a vector perpendicular to flight direction
+        let perpDx = -direction.dy
+        let perpDy = direction.dx
+        
+        let radius = ship.radius
+        
+        // 2. Calculate start points for the 3 rays (Center, Left Wing, Right Wing)
+        let centerStart = shipScenePos
+        let leftStart = CGPoint(x: shipScenePos.x + (perpDx * radius), y: shipScenePos.y + (perpDy * radius))
+        let rightStart = CGPoint(x: shipScenePos.x - (perpDx * radius), y: shipScenePos.y - (perpDy * radius))
+        
+        // 3. Calculate end points 3000 pixels away
+        let rayLength: CGFloat = 3000
+        let centerEnd = CGPoint(x: centerStart.x + direction.dx * rayLength, y: centerStart.y + direction.dy * rayLength)
+        let leftEnd = CGPoint(x: leftStart.x + direction.dx * rayLength, y: leftStart.y + direction.dy * rayLength)
+        let rightEnd = CGPoint(x: rightStart.x + direction.dx * rayLength, y: rightStart.y + direction.dy * rayLength)
+        
+        // 4. Helper function to cast a ray as to not repeat the physics code 3 times
+        let castRay: (CGPoint, CGPoint) -> Void = { start, end in
+            // If one of the previous rays already hit something, skip this one
+            guard !willHitSomething else { return }
+            
+            self.physicsWorld.enumerateBodies(alongRayStart: start, end: end) { body, point, normal, stop in
+                if body.categoryBitMask == PhysicsCategory.planet ||
+                   body.categoryBitMask == PhysicsCategory.meteor ||
+                   body.categoryBitMask == PhysicsCategory.blackHole {
+                    
+                    willHitSomething = true
+                    stop.pointee = true // Found a target, stop search
+                }
             }
         }
+        
+        // 5. Fire the 3 lasers
+        castRay(centerStart, centerEnd)
+        castRay(leftStart, leftEnd)
+        castRay(rightStart, rightEnd)
         
         if willHitSomething {
             // Ship is on target, smoothly follow it
