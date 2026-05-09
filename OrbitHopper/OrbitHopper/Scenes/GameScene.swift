@@ -76,8 +76,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         cameraNode.addChild(nebulaNode)
         
         // Initialize Game Mode
-        // director = CampaignDirector(levelIndex: 1)
-        director = EndlessDirector()
+        director = CampaignDirector(levelIndex: 0)
+        // director = EndlessDirector()
         
         // Send current game mode title to SwiftUI
         if let campaign = director as? CampaignDirector, let level = campaign.currentLevel {

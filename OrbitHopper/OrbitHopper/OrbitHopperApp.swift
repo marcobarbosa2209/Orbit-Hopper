@@ -15,3 +15,7 @@ struct OrbitHopperApp: App {
         }
     }
 }
+
+#Preview {
+    ContentView()
+}
