@@ -11,6 +11,7 @@ import Combine
 
 class GameState: ObservableObject {
     @Published var score: Int = 0
+    @Published var scoreMultiplier: Int = 1
     @Published var progress: CGFloat = 0.0
     @Published var distanceToBlackHole: Int = 250
     @Published var isGameOver: Bool = false

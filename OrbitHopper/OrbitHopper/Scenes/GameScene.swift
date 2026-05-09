@@ -17,6 +17,12 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // Camera
     let cameraNode = SKCameraNode()
+    enum CameraState { case framingPlanets, followingShip, staticDeath }
+    var cameraState: CameraState = .framingPlanets
+    
+    // Combos
+    var scoreMultiplier: Int = 1
+    var comboEndTime: TimeInterval = 0
     
     // Background
     var backgroundStars: [StarData] = []
@@ -276,6 +282,19 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let dt = currentTime - lastUpdateTime
         lastUpdateTime = currentTime
         
+        // Combo Decay Check
+        if scoreMultiplier > 1 && currentTime > comboEndTime {
+            scoreMultiplier = 1
+            DispatchQueue.main.async { self.gameState?.scoreMultiplier = 1 }
+        }
+        
+        // Dynamic Camera Follow
+        if cameraState == .followingShip {
+            let followSpeed: CGFloat = 4.0
+            cameraNode.position.x += (ship.position.x - cameraNode.position.x) * followSpeed * CGFloat(dt)
+            cameraNode.position.y += (ship.position.y - cameraNode.position.y) * followSpeed * CGFloat(dt)
+        }
+        
         // Star paralax effect
         let dy = cameraNode.position.y - lastCameraY
         lastCameraY = cameraNode.position.y
@@ -392,7 +411,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             let isOutOfBoundsX = ship.position.x < leftEdge || ship.position.x > rightEdge
             let isOutOfBoundsY = ship.position.y < bottomEdge || ship.position.y > topEdge
             
-            if isOutOfBoundsX || isOutOfBoundsY {
+            if (isOutOfBoundsX || isOutOfBoundsY) && self.cameraState != .followingShip {
                 gameOver()
             }
             
@@ -634,6 +653,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         let launchForce: CGFloat = 8
         ship.physicsBody?.applyImpulse(CGVector(dx: direction.dx * launchForce, dy: direction.dy * launchForce))
+        
+        // Trace an invisible line 3000 pixels in front of the ship
+        let rayEnd = CGPoint(x: shipScenePos.x + direction.dx * 3000, y: shipScenePos.y + direction.dy * 3000)
+        var willHitSomething = false
+        
+        self.physicsWorld.enumerateBodies(alongRayStart: shipScenePos, end: rayEnd) { body, point, normal, stop in
+            if body.categoryBitMask == PhysicsCategory.planet || body.categoryBitMask == PhysicsCategory.meteor || body.categoryBitMask == PhysicsCategory.blackHole {
+                willHitSomething = true
+                stop.pointee = true // Found a target, stop search
+            }
+        }
+        
+        if willHitSomething {
+            // Ship is on target, smoothly follow it
+            cameraState = .followingShip
+        } else {
+            // Ship is going to miss entirely. Lock the camera so the player flies out of bounds and dies
+            cameraState = .staticDeath
+            cameraNode.removeAllActions()
+        }
     }
     
     // MARK: - Collision Routing
@@ -681,9 +720,26 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Don't land on the planet we are already attached to
         guard planet != currentInteractable else { return }
         
-        // 1. Score point if we moved forward
-        if planet.sequenceIndex > director.score {
-            director.score = planet.sequenceIndex
+        // 1. Score & Combo Logic
+        if planet.sequenceIndex > director.planetsCleared {
+            
+            // Check if player skipped planet
+            let skippedPlanets = planet.sequenceIndex - currentInteractable.sequenceIndex - 1
+            if skippedPlanets > 0 {
+                // Double the multiplier for every planet skipped! (2x, 4x, 8x...)
+                scoreMultiplier *= (2 * skippedPlanets)
+                // Give them 10 seconds to keep the combo going
+                comboEndTime = lastUpdateTime + 10.0
+                gameState?.scoreMultiplier = scoreMultiplier
+            }
+            
+            // Calculate distance traveled and multiply it for big numbers
+            let distanceTraveled = max(0, planet.position.y - currentInteractable.position.y)
+            let basePoints = Int(distanceTraveled) * 10
+            let totalPoints = basePoints * scoreMultiplier
+            
+            director.score += totalPoints
+            director.planetsCleared = planet.sequenceIndex
             gameState?.score = director.score
         }
         
@@ -706,6 +762,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             y: sin(angle) * perfectDistance
         )
         
+        self.cameraState = .framingPlanets
+        
         // 5. Queue the attachment for the end of the frame
         self.run(SKAction.run {
             self.attachShip(to: planet, atLocalPosition: perfectLocalPos)
@@ -719,13 +777,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         // Don't land on the station if we are already attached to it
         guard station != currentInteractable else { return }
         
-        // TODO: Update station landing logic to show Win Sequence
-        
         // 1. Score point if we moved forward
-        if station.sequenceIndex > director.score {
-            director.score = station.sequenceIndex
+        if station.sequenceIndex > director.planetsCleared {
+            // Give player a last few score points
+            director.score += Int((CGFloat.random(in: 7500...12500) * CGFloat(scoreMultiplier)).rounded())
+            director.planetsCleared = station.sequenceIndex
             gameState?.score = director.score
         }
+        
+        nextInteractable = nil
         
         // 2. Do Math to snap perfectly to the edge
         let rawLocalPos = station.convert(ship.position, from: self)
@@ -744,13 +804,16 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.run(SKAction.run {
             self.attachShip(to: station, atLocalPosition: perfectLocalPos)
             self.levelComplete(station: station)
+            
+            self.cameraState = .framingPlanets
+            self.updateCamera()
         })
     }
         
     func updateProgress() {
         guard let director = director else { return }
         
-        let currentScore = director.score
+        let currentScore = director.planetsCleared
         var clampedPercent: CGFloat = 0.0
         
         if let campaign = director as? CampaignDirector {

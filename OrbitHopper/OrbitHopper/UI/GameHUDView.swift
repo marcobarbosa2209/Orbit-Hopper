@@ -14,13 +14,26 @@ struct GameHUDView: View {
     var body: some View {
         ZStack(alignment: .top) {
             
-            // Score label
-            Text("\(gameState.score)")
-                .font(.custom("JetBrainsMono-Bold", size: 96))
-                .foregroundColor(.white.opacity(0.15))
-                .safeAreaPadding(.top)
-                .padding(.top, 240)
-                .allowsHitTesting(false)
+            // Score layer
+            VStack(spacing: -10) {
+                // Using .formatted() to automatically adds commas
+                Text("\(gameState.score.formatted())")
+                    .font(.custom("JetBrainsMono-Bold", size: 80))
+                    .foregroundColor(.white.opacity(0.15))
+                
+                // Combo multiplier
+                if gameState.scoreMultiplier > 1 {
+                    Text("x\(gameState.scoreMultiplier) COMBO!")
+                        .font(.custom("JetBrainsMono-ExtraBold", size: 28))
+                        .foregroundColor(.yellow.opacity(0.8))
+                        // Add a pulse effect to the combo
+                        .scaleEffect(gameState.scoreMultiplier > 1 ? 1.1 : 1.0)
+                        .animation(Animation.easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: gameState.scoreMultiplier > 1)
+                }
+            }
+            .safeAreaPadding(.top)
+            .padding(.top, 240)
+            .allowsHitTesting(false)
             
             // Progress tracker
             VStack {

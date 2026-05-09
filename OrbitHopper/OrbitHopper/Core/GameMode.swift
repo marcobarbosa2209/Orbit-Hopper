@@ -40,6 +40,7 @@ enum SpawnableObject {
 // 4. The Blueprint for Game Modes
 protocol GameModeDirector {
     var score: Int { get set }
+    var planetsCleared: Int { get set }
     func generateNextObject() -> SpawnableObject?
     func getBlackHoleSpeed() -> CGFloat
     func getMeteorChance() -> CGFloat
@@ -49,6 +50,7 @@ protocol GameModeDirector {
 class EndlessDirector: GameModeDirector {
     var score = 0
     var spawnCount = 0
+    var planetsCleared = 0
     
     var allPlanetsPool: [PlanetConfig] = []
     var lastPlanet: PlanetConfig?
@@ -106,12 +108,12 @@ class EndlessDirector: GameModeDirector {
     
     func getBlackHoleSpeed() -> CGFloat {
         let initialSpeed: CGFloat = 30.0
-        return initialSpeed + (CGFloat(score) * 2.0)
+        return initialSpeed + (CGFloat(planetsCleared) * 2.0)
     }
     
     func getMeteorChance() -> CGFloat {
         // Starts at 10% (0.1). Goes up by 1% (0.01) per score. Capped at 50% (0.5).
-        let calculatedChance = 0.1 + (CGFloat(score) * 0.01)
+        let calculatedChance = 0.1 + (CGFloat(planetsCleared) * 0.01)
         return min(calculatedChance, 0.5)
     }
 }
@@ -120,6 +122,7 @@ class EndlessDirector: GameModeDirector {
 class CampaignDirector: GameModeDirector {
     var score = 0
     var spawnCount = 0
+    var planetsCleared = 0
     let levels: [Level]
     var currentLevelIndex: Int
     
@@ -183,7 +186,7 @@ class CampaignDirector: GameModeDirector {
         let difficulty = currentLevel?.difficultyModifier ?? 1.0
                 
         // Multiplier: scales up by 5 per point, accelerated by difficulty
-        let calculatedSpeed = initialSpeed + (CGFloat(score) * 5.0 * difficulty)
+        let calculatedSpeed = initialSpeed + (CGFloat(planetsCleared) * 5.0 * difficulty)
         
         let maxSpeedCap = initialSpeed * 3.0 // Never go faster than 3x starting speed
         
