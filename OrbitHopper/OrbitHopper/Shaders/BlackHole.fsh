@@ -27,6 +27,11 @@ float fbm(vec2 st) {
     return value;
 }
 
+// 2. Posterize: snap a value to one of N discrete steps with hard edges
+float posterize(float value, float steps) {
+    return floor(value * steps) / steps;
+}
+
 void main() {
     // Shift coordinates so (0,0) is the dead center of the sprite
     vec2 uv = v_tex_coord - 0.5;
@@ -34,50 +39,69 @@ void main() {
     float eventHorizon = 0.15;
 
     if (dist < eventHorizon) {
-        // 1. The Singularity: Subtle internal gradient for depth
-        float internalGlow = smoothstep(eventHorizon, 0.0, dist) * 0.15;
-        gl_FragColor = vec4(vec3(0.02, 0.05, 0.1) * internalGlow, 1.0);
+        // 1. The Singularity: Flat black void with a subtle stepped internal ring
+        float ring = step(0.10, dist) * 0.12;
+        gl_FragColor = vec4(vec3(0.02, 0.05, 0.1) * ring, 1.0);
     } else {
         // 2. Seamless Coordinates: Map angle to noise space for smooth wrapping
         float angle = atan(uv.y, uv.x);
-        
+
         // Swirl intensity increases near the center
         float swirl = 2.0 / (dist + 0.05);
         float dynamicAngle = angle + swirl + u_time * 0.8;
-        
+
         // Use Trig for 100% seamless wrap
         vec2 noiseUV = vec2(cos(dynamicAngle), sin(dynamicAngle)) * 1.5;
-        
+
         // Mix with radial distance for movement
         noiseUV = noiseUV + vec2(dist * 4.0 - u_time * 0.3);
-        
+
         float n = fbm(noiseUV);
 
-        // 3. The Photon Sphere: Bright inner rim at the edge of the void
-        float photonSphere = smoothstep(eventHorizon + 0.03, eventHorizon, dist);
-        
-        // 4. Accretion Disk Glow: Flickering gas clouds
-        float diskGlow = 1.0 - smoothstep(eventHorizon, 0.5, dist);
-        diskGlow = diskGlow * (n * 1.5 + 0.5);
+        // 3. The Photon Sphere: Hard inner rim at the edge of the void
+        float photonSphere = step(dist, eventHorizon + 0.025);
 
-        // 5. Colors & Composition: Electric Blue to Deep Navy
-        vec3 coreColor = vec3(0.3, 0.8, 1.0);
-        vec3 midColor = vec3(0.1, 0.4, 0.8);
-        vec3 edgeColor = vec3(0.02, 0.05, 0.15);
-        
-        vec3 color = mix(edgeColor, midColor, diskGlow);
-        color = mix(color, coreColor, diskGlow * diskGlow);
-        
-        // Add the white-hot inner rim
-        color = mix(color, vec3(1.0, 1.0, 1.0), photonSphere * 0.9);
-        
-        // Add extra brightness (bloom) near the horizon
-        float bloom = pow(diskGlow, 3.0) * 1.2;
-        color = color + coreColor * bloom;
+        // 4. Accretion Disk: Posterized gas bands (10 discrete shades)
+        float rawGlow = 1.0 - smoothstep(eventHorizon, 0.5, dist);
+        rawGlow = rawGlow * (n * 1.5 + 0.5);
+        float diskGlow = posterize(rawGlow, 10.0);
 
-        // 6. Circular Mask
-        float alpha = 1.0 - smoothstep(0.46, 0.5, dist);
+        // 5. Color Palette: 10 flat shades mapped along a gradient
+        vec3 colCore = vec3(0.01, 0.03, 0.08);   // deepest navy
+        vec3 colMid1 = vec3(0.06, 0.20, 0.50);   // dark blue
+        vec3 colMid2 = vec3(0.15, 0.50, 0.85);   // mid blue
+        vec3 colEdge = vec3(0.35, 0.85, 1.00);   // bright cyan
+
+        vec3 color;
+        // Interpolate the posterized glow to generate 10 flat colors
+        if (diskGlow < 0.33) {
+            color = mix(colCore, colMid1, diskGlow / 0.33);
+        } else if (diskGlow < 0.66) {
+            color = mix(colMid1, colMid2, (diskGlow - 0.33) / 0.33);
+        } else {
+            color = mix(colMid2, colEdge, (diskGlow - 0.66) / 0.34);
+        }
+
+        // Add the white-hot inner rim as a flat band
+        color = mix(color, vec3(0.9, 0.97, 1.0), photonSphere);
+
+        // 6. Posterize the outer bloom into a single highlight band
+        float bloom = step(0.65, pow(rawGlow, 2.0));
+        color = color + colEdge * bloom * 0.3;
+
+        // 7. Outer Edge Mask & Noisy Fade
+        // Create prominent swirling arms using the dynamic angle
+        float armDistort = sin(dynamicAngle * 3.0) * 0.06 + sin(dynamicAngle * 2.0 - u_time) * 0.04;
         
+        // Combine distance, arms, and fine noise
+        float edgeDist = dist + armDistort + ((n - 0.5) * 0.05);
+
+        // Separate high-frequency noise specifically for the fade out
+        float fadeNoise = fbm(uv * 12.0 - u_time * 0.4);
+        
+        // Smoothly fade the edge over a noisy range to make it organically vanish
+        float alpha = smoothstep(0.52, 0.38, edgeDist + (fadeNoise * 0.15));
+
         gl_FragColor = vec4(color * alpha, alpha);
     }
 }
