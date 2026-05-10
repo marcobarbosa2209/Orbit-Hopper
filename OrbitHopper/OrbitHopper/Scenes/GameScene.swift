@@ -18,7 +18,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     // 2. Camera states and framing
     let cameraNode = SKCameraNode()
-    enum CameraState { case framingPlanets, followingShip, staticDeath }
+    enum CameraState { case framingPlanets, followingShip }
     var cameraState: CameraState = .framingPlanets
     
     // 3. Combo and scoring logic
@@ -724,37 +724,27 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // Ship is on target, smoothly follow it
             cameraState = .followingShip
         } else {
-            // Ship is going to miss entirely. Lock the camera so the player flies out of bounds and dies
-            cameraState = .staticDeath
-            cameraNode.removeAllActions()
+            // Ship is going to miss entirely
+            cameraState = .followingShip
             
-            // Smoothly accelerate to death speed
-            if let currentVelocity = ship.physicsBody?.velocity {
-                
-                let deathSpeedMultiplier: CGFloat = 4.0
-                let targetVelocity = CGVector(
-                    dx: currentVelocity.dx * deathSpeedMultiplier,
-                    dy: currentVelocity.dy * deathSpeedMultiplier
-                )
-                
-                // How long it takes to reach maximum speed
-                let accelerationTime: TimeInterval = 0.5
-                
-                let smoothAccelerate = SKAction.customAction(withDuration: accelerationTime) { node, elapsedTime in
-                    guard let physicsBody = node.physicsBody else { return }
-                    
-                    let percent = CGFloat(elapsedTime / accelerationTime)
-                    
-                    // Lerp the velocity: Start + (Difference * Percent)
-                    let newDx = currentVelocity.dx + (targetVelocity.dx - currentVelocity.dx) * percent
-                    let newDy = currentVelocity.dy + (targetVelocity.dy - currentVelocity.dy) * percent
-                    
-                    physicsBody.velocity = CGVector(dx: newDx, dy: newDy)
-                }
-                
-                // Run the smooth acceleration on the ship
-                ship.run(smoothAccelerate)
+            // Mark it as dying so other collisions/bounds checks ignore it
+            ship.name = "dying"
+            
+            // 1. Wait 2 seconds
+            let driftIntoVoid = SKAction.wait(forDuration: 2.0)
+            
+            // 2. Fade out over 0.5 seconds
+            let fadeOut = SKAction.fadeOut(withDuration: 0.5)
+            
+            // 3. Stop the ship and trigger the Game Over UI
+            let triggerGameOver = SKAction.run { [weak self] in
+                self?.ship.physicsBody?.velocity = .zero // Stop it so the camera stops moving
+                self?.isPaused = true
+                self?.gameState?.currentMenu = .gameOver
             }
+            
+            // Run the cinematic death sequence
+            ship.run(SKAction.sequence([driftIntoVoid, fadeOut, triggerGameOver]))
         }
     }
     
