@@ -82,8 +82,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         cameraNode.addChild(nebulaNode)
         
         // Initialize Game Mode
-        director = CampaignDirector(levelIndex: 0)
-        // director = EndlessDirector()
+        // director = CampaignDirector(levelIndex: 0)
+        director = EndlessDirector()
         
         // Send current game mode title to SwiftUI
         if let campaign = director as? CampaignDirector, let level = campaign.currentLevel {
@@ -444,6 +444,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.gameState?.score = 0
         self.gameState?.progress = 0.0
         self.gameState?.distanceToBlackHole = 0
+        self.gameState?.scoreMultiplier = 1
         
         self.view?.isUserInteractionEnabled = true
         
@@ -702,6 +703,34 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             // Ship is going to miss entirely. Lock the camera so the player flies out of bounds and dies
             cameraState = .staticDeath
             cameraNode.removeAllActions()
+            
+            // Smoothly accelerate to death speed
+            if let currentVelocity = ship.physicsBody?.velocity {
+                
+                let deathSpeedMultiplier: CGFloat = 4.0
+                let targetVelocity = CGVector(
+                    dx: currentVelocity.dx * deathSpeedMultiplier,
+                    dy: currentVelocity.dy * deathSpeedMultiplier
+                )
+                
+                // How long it takes to reach maximum speed
+                let accelerationTime: TimeInterval = 0.5
+                
+                let smoothAccelerate = SKAction.customAction(withDuration: accelerationTime) { node, elapsedTime in
+                    guard let physicsBody = node.physicsBody else { return }
+                    
+                    let percent = CGFloat(elapsedTime / accelerationTime)
+                    
+                    // Lerp the velocity: Start + (Difference * Percent)
+                    let newDx = currentVelocity.dx + (targetVelocity.dx - currentVelocity.dx) * percent
+                    let newDy = currentVelocity.dy + (targetVelocity.dy - currentVelocity.dy) * percent
+                    
+                    physicsBody.velocity = CGVector(dx: newDx, dy: newDy)
+                }
+                
+                // Run the smooth acceleration on the ship
+                ship.run(smoothAccelerate)
+            }
         }
     }
     
@@ -854,7 +883,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         } else if director is EndlessDirector {
             let highScore = SaveManager.getHighScore()
             let target = max(highScore, 1)
-            let percent = CGFloat(currentScore) / CGFloat(target)
+            let percent = CGFloat(director.score) / CGFloat(target)
             clampedPercent = percent
         }
         
