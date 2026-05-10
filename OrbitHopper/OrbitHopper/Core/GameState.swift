@@ -15,10 +15,15 @@ class GameState: ObservableObject {
     @Published var progress: CGFloat = 0.0
     @Published var distanceToBlackHole: Int = 250
     @Published var isGameOver: Bool = false
+    @Published var gameSessionID = UUID()
     
     @Published var levelTitle: String = ""
     
     @Published var currentMenu: MenuState = .playing
+    
+    // Ad Tracking
+    @Published var isAdReady: Bool = false
+    @Published var triggerResurrection: Bool = false
     
     enum MenuState {
         case mainMenu, levelSelect, playing, gameOver

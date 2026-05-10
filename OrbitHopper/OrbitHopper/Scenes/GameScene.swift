@@ -6,25 +6,26 @@
 //
 
 import SpriteKit
+import Combine
 
 
 class GameScene: SKScene, SKPhysicsContactDelegate {
     
     var gameState: GameState?
     
-    // Ship
+    // 1. Ship and player properties
     var ship: ShipNode!
     
-    // Camera
+    // 2. Camera states and framing
     let cameraNode = SKCameraNode()
     enum CameraState { case framingPlanets, followingShip, staticDeath }
     var cameraState: CameraState = .framingPlanets
     
-    // Combos
+    // 3. Combo and scoring logic
     var scoreMultiplier: Int = 1
     var comboEndTime: TimeInterval = 0
     
-    // Background
+    // 4. Background and parallax elements
     var backgroundStars: [StarData] = []
     var lastCameraY: CGFloat = 0
     var nebulaNode: SKSpriteNode!
@@ -36,56 +37,51 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     
     let themeColor = UIColor(red: 0.45, green: 0.95, blue: 0.90, alpha: 1.0)
     
-    // Game Mode
+    // 5. Reactive observers
+    var cancellables = Set<AnyCancellable>()
+    
+    // 6. Game Mode management
     var director: GameModeDirector!
     
-    // Object Management
+    // 7. Object and spawn management
     var currentInteractable: InteractableNode!
     var highestSpawnY: CGFloat = 0
     var highestSpawnX: CGFloat = 0
     var nextInteractable: InteractableNode?
     var objectsSpawnedCount: Int = 0
     
-    // Black Hole Management
+    // 8. Black Hole tracking
     var blackHole: BlackHoleNode!
     var lastUpdateTime: TimeInterval = 0
     
     override func didMove(to view: SKView) {
         
-        // 1. Setup World
+        // 1. Setup physics world
         self.backgroundColor = .black
         self.physicsWorld.gravity = .zero
         self.physicsWorld.contactDelegate = self
         
-        // 2. Setup Camera
+        // 2. Configure camera node
         self.camera = cameraNode
         self.addChild(cameraNode)
         
-        // 2.1 Setup Background
+        // 3. Initialize background stars and nebula
         initializeStars(view: view)
         
-        // 2.1.1. Create a sprite the exact size of the screen
+        // 4. Setup nebula background shader
         nebulaNode = SKSpriteNode(color: .black, size: self.size)
-        
-        // 2.1.2. Load the shader
         let nebulaShader = SKShader(fileNamed: "Nebula.fsh")
-        
-        // 2.1.3. Create a Swift to GLSL bridge variable to send the camera position
         let cameraOffsetUniform = SKUniform(name: "u_camera_offset", vectorFloat2: SIMD2<Float>(0, 0))
         nebulaShader.uniforms = [cameraOffsetUniform]
         
-        // 2.1.4. Attach it
         nebulaNode.shader = nebulaShader
         nebulaNode.zPosition = -105
-        
-        // Attach to the camera so it always covers the screen
         cameraNode.addChild(nebulaNode)
         
-        // Initialize Game Mode
-        // director = CampaignDirector(levelIndex: 0)
+        // 5. Initialize Game Mode (Campaign or Endless)
         director = EndlessDirector()
         
-        // Send current game mode title to SwiftUI
+        // 6. Update level title for the UI
         if let campaign = director as? CampaignDirector, let level = campaign.currentLevel {
                 let levelNumber = String(format: "%03d", campaign.currentLevelIndex + 1)
                 gameState?.levelTitle = "\(level.galaxyName.uppercased()) // LEVEL \(levelNumber)"
@@ -93,9 +89,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
                 gameState?.levelTitle = "ENDLESS MODE // HI-SCORE"
             }
         
-        // Manually spawn the very first starting planet before the spawner has a reference point.
+        // 7. Spawn initial starting planet
         let startConfig = director.generateNextObject()
-        
         guard let startPlanet = makeInteractable(from: startConfig!, sequenceIndex: 0) as? PlanetNode else {
             fatalError("The initial object must be a PlanetNode.")
         }
@@ -106,30 +101,39 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         highestSpawnY = startPlanet.position.y
         highestSpawnX = startPlanet.position.x
         
-        // Generate the first targets
+        // 8. Maintain initial planet runway
         maintainPlanetBuffer()
-        
         nextInteractable = self.children
             .compactMap { $0 as? InteractableNode }
             .filter { $0.position.y > startPlanet.position.y }
             .min(by: { $0.position.y < $1.position.y })
                 
-        // Spawn Ship
+        // 9. Spawn ship and attach to starting planet
         ship = ShipNode(radius: 20)
         attachShip(to: currentInteractable, atLocalPosition: CGPoint(x: 0, y: startPlanet.colliderRadius + ship.radius))
         
-        // Spawn Black Hole
+        // 10. Spawn Black Hole at the bottom
         blackHole = BlackHoleNode(radius: 600)
         blackHole.position = CGPoint(x: view.bounds.minX, y: view.bounds.minY - blackHole.radius - 200)
         addChild(blackHole)
         
-        // Frame the initial camera
+        // 11. Initial camera alignment
         updateCamera(instant: true)
-        
         lastCameraY = cameraNode.position.y
+        
+        // 12. Listen for resurrection requests
+        gameState?.$triggerResurrection
+            .receive(on: RunLoop.main)
+            .filter { $0 }
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                self.gameState?.triggerResurrection = false
+                self.resurrectPlayer()
+            }
+            .store(in: &cancellables)
     }
     
-    // MARK: - Spawner Logic
+    // 1. Spawner Logic
     private func makeInteractable(from config: SpawnableObject, sequenceIndex: Int) -> InteractableNode {
         switch config {
         case .planet(let radius, let colliderRadius, let speedMult, let curve, let imagePath, let hexColor):
@@ -181,7 +185,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         return newObject
     }
     
-    // MARK: - Meteor System
+    // 2. Meteor System
     func trySpawnMeteor() {
         let chance = director.getMeteorChance()
         let roll = CGFloat.random(in: 0.0...1.0)
@@ -274,7 +278,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         self.run(SKAction.sequence([waitSequence, fireMeteor]))
     }
     
-    // MARK: - Game Loop
+    // 3. Game Loop
     override func update(_ currentTime: TimeInterval) {
         
         // Calculate Delta Time for smooth movement regardless of FPS
@@ -423,34 +427,50 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     }
     
     func gameOver() {
+        // Prevent duplicate calls
+        guard ship.name != "dying" else { return }
+        ship.name = "dying"
         
         // Save local file
         if director is EndlessDirector {
             SaveManager.saveHighScore(newScore: director.score)
         }
         
-        // 1. Pause the scene so the player doesn't keep falling/triggering collisions
+        // Stop the ship so it doesn't keep triggering collisions
+        ship.physicsBody = nil
+        ship.removeAllActions()
+        
+        // Pause the scene and show the Game Over overlay (with the ad button)
         self.isPaused = true
+        self.gameState?.currentMenu = .gameOver
+    }
+    
+    func resurrectPlayer() {
+        // 1. Reset the ship's state
+        ship.name = "ship"
+        ship.removeAllActions()
+        ship.setScale(1.0)
+        ship.alpha = 1.0
         
-        // 2. Create a brand new, fresh copy of the game scene
-        let newScene = GameScene(size: self.size)
-        newScene.scaleMode = self.scaleMode
+        // 2. Push the black hole  down to give players a huge head start
+        blackHole.position.y -= 1200
+        updateBlackHoleDistance()
         
-        // 2.1. Pass the SwiftUI bridge from the old scene into the new scene
-        newScene.gameState = self.gameState
+        // 3. Put the ship back onto the last planet they were on
+        if let safePlanet = currentInteractable {
+            attachShip(to: safePlanet, atLocalPosition: CGPoint(x: 0, y: safePlanet.colliderRadius + ship.radius))
+        }
         
+        // 4. Clean up meteors so they don't instantly die again
+        for node in self.children where node is MeteorNode {
+            node.removeFromParent()
+        }
         
-        // 2.2 Reset game state
-        self.gameState?.score = 0
-        self.gameState?.progress = 0.0
-        self.gameState?.distanceToBlackHole = 0
-        self.gameState?.scoreMultiplier = 1
-        
-        self.view?.isUserInteractionEnabled = true
-        
-        // 3. Restart the game with a cool cinematic fade
-        let transition = SKTransition.fade(with: .black, duration: 1.0)
-        self.view?.presentScene(newScene, transition: transition)
+        // 5. Unpause and resume
+        self.isPaused = false
+        self.cameraState = .framingPlanets
+        self.updateCamera(instant: true)
+        self.gameState?.currentMenu = .playing
     }
     
     func levelComplete(station: SpaceStationNode) {
@@ -532,6 +552,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         guard ship.name != "dying" else { return }
         ship.name = "dying"
         
+        // Save local file
+        if director is EndlessDirector {
+            SaveManager.saveHighScore(newScore: director.score)
+        }
+        
         // 1. Move the ship to the main scene if it's currently spinning on a planet
         if ship.parent != self {
             let scenePos = ship.parent?.convert(ship.position, to: self) ?? ship.position
@@ -552,16 +577,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             SKAction.rotate(byAngle: .pi * 4, duration: 3)
         ])
         
-        // 4. Game over after action
-        let finishGameOver = SKAction.run {
-            self.gameOver()
+        // 4. Show the Game Over UI instead of instantly restarting
+        let showGameOverMenu = SKAction.run {
+            self.isPaused = true
+            self.gameState?.currentMenu = .gameOver
         }
         
-        // Run "sequence"
         ship.run(suckIn)
-        
         let wait = SKAction.wait(forDuration: 1.5)
-        ship.run(SKAction.sequence([wait, finishGameOver]))
+        ship.run(SKAction.sequence([wait, showGameOverMenu]))
     }
 
     
@@ -569,7 +593,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         launchShip()
     }
     
-    // MARK: - Camera Control
+    // 4. Camera Control
     func updateCamera(instant: Bool = false) {
         // Calculate the ideal midpoint
         let targetY = (currentInteractable.position.y + (nextInteractable?.position.y ?? currentInteractable.position.y)) / 2
@@ -594,7 +618,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         cameraNode.run(moveCamera)
     }
     
-    // MARK: - Core Mechanics
+    // 5. Core Mechanics
     func attachShip(to interactable: InteractableNode, atLocalPosition localPos: CGPoint? = nil) {
         
         // Stop physics movement
@@ -734,7 +758,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
     }
     
-    // MARK: - Collision Routing
+    // 6. Collision Routing
     func didBegin(_ contact: SKPhysicsContact) {
         
         let bodyA = contact.bodyA.categoryBitMask
