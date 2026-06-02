@@ -33,7 +33,7 @@
                 "imageUrl": "planet-saturn",
                 "radius": 75.0,
                 "hexColor": "#F1C40F",
-                "colliderRadius" : 40.0
+                "colliderRadius": 40.0
             },
             {
                 "imageUrl": "planet-uranus",
@@ -45,7 +45,9 @@
                 "radius": 50.0,
                 "hexColor": "#1F3A93"
             }
-        ]
+        ],
+        "blackHoleColor": "#4B90E2",
+        "maxScore": 30000
     },
     {
         "difficultyModifier": 1.2,
@@ -97,7 +99,9 @@
                 "radius": 50.0,
                 "hexColor": "#F39C12"
             }
-        ]
+        ],
+        "blackHoleColor": "#CF000F",
+        "maxScore": 40500
     },
     {
         "difficultyModifier": 1.4,
@@ -154,7 +158,9 @@
                 "radius": 50.0,
                 "hexColor": "#FFA500"
             }
-        ]
+        ],
+        "blackHoleColor": "#2ECC71",
+        "maxScore": 52500
     },
     {
         "difficultyModifier": 1.6,
@@ -216,7 +222,9 @@
                 "radius": 50.0,
                 "hexColor": "#000080"
             }
-        ]
+        ],
+        "blackHoleColor": "#8E44AD",
+        "maxScore": 66000
     },
     {
         "difficultyModifier": 1.8,
@@ -283,7 +291,9 @@
                 "radius": 50.0,
                 "hexColor": "#4682B4"
             }
-        ]
+        ],
+        "blackHoleColor": "#F39C12",
+        "maxScore": 81000
     },
     {
         "difficultyModifier": 2.0,
@@ -355,7 +365,9 @@
                 "radius": 45.0,
                 "hexColor": "#A52A2A"
             }
-        ]
+        ],
+        "blackHoleColor": "#1F3A93",
+        "maxScore": 97500
     },
     {
         "difficultyModifier": 2.2,
@@ -432,7 +444,9 @@
                 "radius": 50.0,
                 "hexColor": "#00FF00"
             }
-        ]
+        ],
+        "blackHoleColor": "#E74C3C",
+        "maxScore": 115500
     },
     {
         "difficultyModifier": 2.4,
@@ -514,7 +528,9 @@
                 "radius": 55.0,
                 "hexColor": "#81CFE0"
             }
-        ]
+        ],
+        "blackHoleColor": "#00FFFF",
+        "maxScore": 135000
     },
     {
         "difficultyModifier": 2.6,
@@ -601,7 +617,9 @@
                 "radius": 50.0,
                 "hexColor": "#1F3A93"
             }
-        ]
+        ],
+        "blackHoleColor": "#FF6B35",
+        "maxScore": 156000
     },
     {
         "difficultyModifier": 2.8,
@@ -693,6 +711,8 @@
                 "radius": 42.0,
                 "hexColor": "#95A5A6"
             }
-        ]
+        ],
+        "blackHoleColor": "#FFD700",
+        "maxScore": 178499
     }
 ]

@@ -9,126 +9,214 @@ import SwiftUI
 
 struct GameHUDView: View {
     @ObservedObject var gameState: GameState
-    let themeColor = Color(red: 0.45, green: 0.95, blue: 0.90)
     
     var body: some View {
         ZStack(alignment: .top) {
             
-            // Score layer
+            // 1. Background score watermark
             VStack(spacing: -10) {
-                // Using .formatted() to automatically adds commas
                 Text("\(gameState.score.formatted())")
-                    .font(.custom("JetBrainsMono-Bold", size: 80))
-                    .foregroundColor(.white.opacity(0.15))
+                    .font(.custom("Orbitron-Black", size: 80))
+                    .foregroundColor(.white.opacity(0.08))
                 
                 // Combo multiplier
                 if gameState.scoreMultiplier > 1 {
                     Text("x\(gameState.scoreMultiplier) COMBO!")
-                        .font(.custom("JetBrainsMono-ExtraBold", size: 28))
-                        .foregroundColor(.yellow.opacity(0.8))
-                        // Add a pulse effect to the combo
+                        .font(DS.orbitron(22, weight: "ExtraBold"))
+                        .foregroundColor(DS.orange)
+                        .glow(DS.orange, radius: 8)
                         .scaleEffect(gameState.scoreMultiplier > 1 ? 1.1 : 1.0)
                         .animation(Animation.easeInOut(duration: 0.5).repeatForever(autoreverses: true), value: gameState.scoreMultiplier > 1)
                 }
             }
             .safeAreaPadding(.top)
-            .padding(.top, 240)
+            .padding(.top, 200)
             .allowsHitTesting(false)
             
-            // Progress tracker
+            // 2. HUD overlay
             VStack {
                 
-                // HStack containing the Progress Card and Pause Button
-                HStack(spacing: 12) {
-                    
-                    // Left Card: Progress Tracker
-                    VStack(alignment: .leading, spacing: 12) {
+                // Top bar with pause + score + shield
+                SciFiPanel(borderColor: DS.green) {
+                    HStack(spacing: 10) {
+                        // Pause button
+                        Button(action: {
+                            gameState.currentMenu = .paused
+                        }) {
+                            HStack(spacing: 4) {
+                                Rectangle()
+                                    .fill(DS.green)
+                                    .frame(width: 3, height: 16)
+                                    .shadow(color: DS.green, radius: 3)
+                                Rectangle()
+                                    .fill(DS.green)
+                                    .frame(width: 3, height: 16)
+                                    .shadow(color: DS.green, radius: 3)
+                            }
+                            .frame(width: 42, height: 42)
+                            .background(DS.green.opacity(0.1))
+                            .clipShape(SciFiClipShape(cornerSize: 6))
+                            .overlay(SciFiClipShape(cornerSize: 6).stroke(DS.green.opacity(0.5), lineWidth: 1))
+                        }
                         
+                        // Score
+                        VStack(spacing: 1) {
+                            Text("SCORE")
+                                .font(DS.mono(8))
+                                .foregroundColor(DS.green.opacity(0.6))
+                                .tracking(3)
+                            Text("\(gameState.score.formatted())")
+                                .font(.custom("Orbitron-Black", size: 26))
+                                .foregroundColor(DS.green)
+                                .tracking(2)
+                                .pulsingGlow(DS.green)
+                        }
+                        .frame(maxWidth: .infinity)
+                        
+                        // Multiplier indicator
+                        if gameState.scoreMultiplier > 1 {
+                            VStack(spacing: 2) {
+                                Text("COMBO")
+                                    .font(DS.mono(7))
+                                    .foregroundColor(DS.orange.opacity(0.7))
+                                    .tracking(2)
+                                Text("x\(gameState.scoreMultiplier)")
+                                    .font(.custom("Orbitron-Black", size: 16))
+                                    .foregroundColor(DS.orange)
+                                    .glow(DS.orange, radius: 6)
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(DS.orange.opacity(0.08))
+                            .clipShape(SciFiClipShape(cornerSize: 8))
+                            .overlay(SciFiClipShape(cornerSize: 8).stroke(DS.orange.opacity(0.5), lineWidth: 1))
+                        }
+                    }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                }
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
+                
+                // 3. Level info panel
+                SciFiPanel(borderColor: DS.green) {
+                    VStack(spacing: 8) {
+                        // Level name and number
                         HStack {
-                            // Left side: Galaxy Name, truncating with ellipsis if too long
-                            Text(gameState.levelTitle.components(separatedBy: " // ").first ?? gameState.levelTitle)
-                                .font(.custom("JetBrainsMono-ExtraBold", size: 16))
-                                .foregroundColor(themeColor)
-                                .lineLimit(1)
-                                .truncationMode(.tail)
-                            
                             if gameState.levelTitle.contains(" // ") {
+                                // Split: "GALAXY NAME // LEVEL 001"
+                                Text(gameState.levelTitle.components(separatedBy: " // ").first ?? gameState.levelTitle)
+                                    .font(DS.orbitron(13))
+                                    .foregroundColor(.white)
+                                    .glow(.white, radius: 6)
+                                    .lineLimit(1)
+                                    .truncationMode(.tail)
+                                
                                 Spacer(minLength: 8)
                                 
-                                // Right side: Level Number
-                                Text("\(gameState.levelTitle.components(separatedBy: " // ").last ?? "")")
-                                    .font(.custom("JetBrainsMono-ExtraBold", size: 16))
-                                    .foregroundColor(themeColor)
+                                Text(gameState.levelTitle.components(separatedBy: " // ").last ?? "")
+                                    .font(DS.mono(9))
+                                    .foregroundColor(DS.cyan.opacity(0.7))
+                                    .tracking(3)
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 3)
+                                    .background(DS.cyan.opacity(0.08))
+                                    .clipShape(SciFiClipShape(cornerSize: 6))
+                                    .overlay(SciFiClipShape(cornerSize: 6).stroke(DS.cyan.opacity(0.25), lineWidth: 1))
                                     .layoutPriority(1)
+                            } else {
+                                Text(gameState.levelTitle)
+                                    .font(DS.orbitron(13))
+                                    .foregroundColor(.white)
+                                    .glow(.white, radius: 6)
                             }
                         }
                         
-                        HStack(spacing: 8) {
+                        // Progress bar
+                        HStack(spacing: 10) {
                             GeometryReader { geometry in
                                 ZStack(alignment: .leading) {
-                                    // Background Track
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(Color(red: 0.102, green: 0.137, blue: 0.145))
-                                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(gameState.progress <= 1 ? themeColor : Color.yellow, lineWidth: 1))
+                                    // Background track
+                                    RoundedRectangle(cornerRadius: 3)
+                                        .fill(Color.white.opacity(0.07))
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 3)
+                                                .stroke(DS.green.opacity(0.2), lineWidth: 1)
+                                        )
                                     
                                     // Fill
-                                    RoundedRectangle(cornerRadius: 6)
-                                        .fill(gameState.progress <= 1 ? themeColor : Color.yellow)
+                                    RoundedRectangle(cornerRadius: 3)
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [DS.green, Color(red: 128/255, green: 255/255, blue: 176/255)],
+                                                startPoint: .leading,
+                                                endPoint: .trailing
+                                            )
+                                        )
                                         .frame(width: geometry.size.width * min(1.0, gameState.progress))
                                         .animation(.spring(response: 0.4, dampingFraction: 0.6), value: gameState.progress)
                                 }
                             }
-                            .frame(height: 10)
+                            .frame(height: 6)
                             
                             Text("\(Int(gameState.progress * 100))%")
-                                .font(.custom("Orbitron-Bold", size: 16))
-                                .foregroundColor(gameState.progress <= 1 ? themeColor : Color.yellow)
+                                .font(DS.mono(10))
+                                .foregroundColor(DS.green)
+                                .tracking(1)
+                                .glow(DS.green, radius: 4)
                         }
                     }
-                    .padding(16)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(12)
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(themeColor, lineWidth: 1.5))
-                    .shadow(color: themeColor.opacity(0.6), radius: 8, x: 0, y: 0)
-                    .allowsHitTesting(false)
-                    
-                    
-                    // Right Card: Pause Button
-                    Button(action: {
-                        print("Pause button tapped!")
-                        // TODO: Add pause button logic
-                    }) {
-                        Image(systemName: "pause")
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundColor(themeColor)
-                            .frame(width: 84, height: 84)
-                            .background(.ultraThinMaterial)
-                            .cornerRadius(12)
-                            .overlay(RoundedRectangle(cornerRadius: 12).stroke(themeColor, lineWidth: 1.5))
-                            .shadow(color: themeColor.opacity(0.6), radius: 8, x: 0, y: 0)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                }
+                .padding(.horizontal, 12)
+                .allowsHitTesting(false)
+                
+                Spacer()
+                
+                // 4. Bottom: Black hole distance tracker
+                VStack(spacing: 4) {
+                    // Animated arrows
+                    VStack(spacing: -2) {
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(DS.cyan.opacity(0.5))
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(DS.cyan.opacity(0.9))
                     }
                     
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
-                
-                Spacer() // Pushes top and bottom apart
-                
-                // Bottom Section: Distance Tracker ---
-                VStack(spacing: 4) {
-                    Text("\(gameState.distanceToBlackHole)km")
-                        .font(.custom("JetBrainsMono-Bold", size: 24))
-                        .foregroundColor(themeColor)
+                    Text("BLACK HOLE")
+                        .font(DS.mono(8))
+                        .foregroundColor(DS.cyan.opacity(0.6))
+                        .tracking(2.5)
                     
-                    Image(systemName: "arrow.down")
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
-                        .foregroundColor(themeColor)
+                    Text("\(gameState.distanceToBlackHole) KM")
+                        .font(DS.orbitron(18))
+                        .foregroundColor(DS.cyan)
+                        .tracking(2)
+                        .pulsingGlow(DS.cyan)
+                    
+                    VStack(spacing: -2) {
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(DS.cyan.opacity(0.9))
+                        Image(systemName: "chevron.down")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(DS.cyan.opacity(0.5))
+                    }
                 }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .padding(.horizontal, 18)
+                .background(DS.panelBg)
+                .clipShape(SciFiClipShape())
+                .overlay(SciFiClipShape().stroke(DS.cyan.opacity(0.35), lineWidth: 1))
+                .padding(.horizontal, 12)
                 .padding(.bottom, 20)
                 .opacity(gameState.distanceToBlackHole < 250 ? 0.0 : 1.0)
                 .animation(.easeInOut(duration: 0.3), value: gameState.distanceToBlackHole < 250)
-                .allowsHitTesting(false) // Ghost the distance tracker
-                
+                .allowsHitTesting(false)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .safeAreaPadding(.top)

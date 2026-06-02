@@ -219,13 +219,26 @@ class Level: Codable {
     let difficultyModifier: CGFloat
     let meteorChance: CGFloat
     let galaxyName: String
+    let blackHoleColor: String
+    let maxScore: Int
     let planets: [PlanetConfig]
 
-    init(difficultyModifier: CGFloat, meteorChance: CGFloat, galaxyName: String, planets: [PlanetConfig]) {
+    init(difficultyModifier: CGFloat, meteorChance: CGFloat, galaxyName: String, blackHoleColor: String, maxScore: Int, planets: [PlanetConfig]) {
         self.planets = planets
         self.difficultyModifier = difficultyModifier
         self.meteorChance = meteorChance
         self.galaxyName = galaxyName
+        self.blackHoleColor = blackHoleColor
+        self.maxScore = maxScore
+    }
+    
+    /// Calculate star rating based on player score vs max possible
+    func calculateStars(playerScore: Int) -> Int {
+        let ratio = Double(playerScore) / Double(max(maxScore, 1))
+        if ratio >= 0.85 { return 3 }
+        if ratio >= 0.55 { return 2 }
+        if ratio >= 0.25 { return 1 }
+        return 0
     }
 }
 
@@ -259,7 +272,7 @@ class BlackHoleNode: SKShapeNode {
     let radius: CGFloat
     let imagePath: String = "black-hole"
 
-    init(radius: CGFloat) {
+    init(radius: CGFloat, hexColor: String? = nil) {
         self.radius = radius
         super.init()
         
@@ -275,6 +288,17 @@ class BlackHoleNode: SKShapeNode {
         
         // Load the GLSL code
         let blackHoleShader = SKShader(fileNamed: "BlackHole.fsh")
+        
+        // Parse hex color if provided, else fall back to zero-vector (default cyan)
+        var colorUniform = SKUniform(name: "u_accent_color", vectorFloat3: SIMD3<Float>(0, 0, 0))
+        if let hex = hexColor, let color = UIColor(hex: hex) {
+            var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+            color.getRed(&r, green: &g, blue: &b, alpha: &a)
+            colorUniform = SKUniform(name: "u_accent_color", vectorFloat3: SIMD3<Float>(Float(r), Float(g), Float(b)))
+        }
+        
+        blackHoleShader.uniforms = [colorUniform]
+        
         shaderNode.shader = blackHoleShader
         shaderNode.zPosition = -1
         

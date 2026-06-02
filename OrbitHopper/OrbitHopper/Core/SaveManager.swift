@@ -12,6 +12,8 @@ struct SaveManager {
     // 1. Define exact string keys so we don't make typos later
     private static let highScoreKey = "endless_hi_score"
     private static let campaignLevelKey = "campaign_current_level"
+    private static let musicVolumeKey = "settings_music_volume"
+    private static let sfxVolumeKey = "settings_sfx_volume"
     
     // MARK: - Endless Mode
     static func getHighScore() -> Int {
@@ -34,7 +36,44 @@ struct SaveManager {
     }
     
     static func saveLevelProgress(levelIndex: Int) {
-        // We can just overwrite this whenever they beat a level
-        UserDefaults.standard.set(levelIndex, forKey: campaignLevelKey)
+        let current = getCurrentLevelIndex()
+        // Only save if the new level is further than what we've unlocked
+        if levelIndex > current {
+            UserDefaults.standard.set(levelIndex, forKey: campaignLevelKey)
+        }
+    }
+    
+    // MARK: - Per-Level Stars
+    static func getStars(forLevel index: Int) -> Int {
+        return UserDefaults.standard.integer(forKey: "level_\(index)_stars")
+    }
+    
+    static func saveStars(forLevel index: Int, stars: Int) {
+        let currentBest = getStars(forLevel: index)
+        // Only save if new star count is higher
+        if stars > currentBest {
+            UserDefaults.standard.set(stars, forKey: "level_\(index)_stars")
+        }
+    }
+    
+    // MARK: - Settings (Persistent)
+    static func getMusicVolume() -> Float {
+        let val = UserDefaults.standard.object(forKey: musicVolumeKey)
+        // Default to 75% if never set
+        return (val as? Float) ?? 0.75
+    }
+    
+    static func saveMusicVolume(_ volume: Float) {
+        UserDefaults.standard.set(volume, forKey: musicVolumeKey)
+    }
+    
+    static func getSFXVolume() -> Float {
+        let val = UserDefaults.standard.object(forKey: sfxVolumeKey)
+        // Default to 90% if never set
+        return (val as? Float) ?? 0.90
+    }
+    
+    static func saveSFXVolume(_ volume: Float) {
+        UserDefaults.standard.set(volume, forKey: sfxVolumeKey)
     }
 }

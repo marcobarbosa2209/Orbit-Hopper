@@ -5,11 +5,25 @@
 
 import AVFoundation
 import Foundation
+import Combine
 
 class AudioManager: ObservableObject {
     static let shared = AudioManager()
     
     private var menuPlayer: AVAudioPlayer?
+    
+    @Published var musicVolume: Float = SaveManager.getMusicVolume() {
+        didSet {
+            menuPlayer?.volume = musicVolume
+            SaveManager.saveMusicVolume(musicVolume)
+        }
+    }
+    
+    @Published var sfxVolume: Float = SaveManager.getSFXVolume() {
+        didSet {
+            SaveManager.saveSFXVolume(sfxVolume)
+        }
+    }
     
     private init() {
         setupMenuMusic()
@@ -24,7 +38,7 @@ class AudioManager: ObservableObject {
         do {
             menuPlayer = try AVAudioPlayer(contentsOf: url)
             menuPlayer?.numberOfLoops = -1 // Loop indefinitely
-            menuPlayer?.volume = 0.5
+            menuPlayer?.volume = musicVolume
             menuPlayer?.prepareToPlay()
         } catch {
             print("Error loading MenuMusic: \(error.localizedDescription)")
@@ -33,6 +47,7 @@ class AudioManager: ObservableObject {
     
     func playMenuMusic() {
         if let player = menuPlayer, !player.isPlaying {
+            player.volume = musicVolume
             player.play()
         }
     }

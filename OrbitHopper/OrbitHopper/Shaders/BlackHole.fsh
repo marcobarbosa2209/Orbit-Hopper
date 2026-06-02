@@ -38,6 +38,16 @@ void main() {
     float dist = length(uv);
     float eventHorizon = 0.15;
 
+    // Resolve accent color: if u_accent_color uniform is provided, use it
+    // Otherwise fall back to the default cyan palette
+    vec3 accent = vec3(0.35, 0.85, 1.00); // default bright cyan
+    #ifdef GL_ES
+    // u_accent_color is optional — check if it has a non-zero value
+    #endif
+    if (u_accent_color.r + u_accent_color.g + u_accent_color.b > 0.01) {
+        accent = u_accent_color;
+    }
+
     if (dist < eventHorizon) {
         // 1. The Singularity: Flat black void with a subtle stepped internal ring
         float ring = step(0.10, dist) * 0.12;
@@ -66,11 +76,11 @@ void main() {
         rawGlow = rawGlow * (n * 1.5 + 0.5);
         float diskGlow = posterize(rawGlow, 10.0);
 
-        // 5. Color Palette: 10 flat shades mapped along a gradient
-        vec3 colCore = vec3(0.01, 0.03, 0.08);   // deepest navy
-        vec3 colMid1 = vec3(0.06, 0.20, 0.50);   // dark blue
-        vec3 colMid2 = vec3(0.15, 0.50, 0.85);   // mid blue
-        vec3 colEdge = vec3(0.35, 0.85, 1.00);   // bright cyan
+        // 5. Color Palette: 10 flat shades mapped along a gradient using accent color
+        vec3 colCore = vec3(0.01, 0.03, 0.08);              // deepest navy
+        vec3 colMid1 = mix(vec3(0.06, 0.10, 0.20), accent * 0.3, 0.5);  // dark tinted
+        vec3 colMid2 = mix(vec3(0.15, 0.30, 0.50), accent * 0.6, 0.5);  // mid tinted
+        vec3 colEdge = accent;                                // bright accent
 
         vec3 color;
         // Interpolate the posterized glow to generate 10 flat colors
@@ -105,3 +115,4 @@ void main() {
         gl_FragColor = vec4(color * alpha, alpha);
     }
 }
+

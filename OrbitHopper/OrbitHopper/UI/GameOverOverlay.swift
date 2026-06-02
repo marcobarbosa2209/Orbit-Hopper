@@ -2,9 +2,6 @@
 //  GameOverOverlay.swift
 //  OrbitHopper
 //
-//  Created by Marco Barbosa on 10/05/2026.
-//
-
 
 import SwiftUI
 
@@ -12,94 +9,163 @@ struct GameOverOverlay: View {
     @ObservedObject var gameState: GameState
     @ObservedObject var adManager: AdManager
     
-    let themeColor = Color(red: 0.45, green: 0.95, blue: 0.90)
-    @State private var isVisible = false
+    @State private var bgOpacity: Double = 0
+    @State private var contentOffset: CGFloat = 40
+    @State private var contentOpacity: Double = 0
+    
+    // 1. Check if this is a new high score for endless mode
+    private var isNewRecord: Bool {
+        gameState.isEndlessMode && gameState.score > SaveManager.getHighScore()
+    }
     
     var body: some View {
         ZStack {
-            Rectangle()
-                .fill(.ultraThinMaterial)
-                .ignoresSafeArea()
+            // 2. Red pulsing vignette background
+            Color.black.opacity(0.85).ignoresSafeArea()
             
-            VStack(spacing: 30) {
+            RadialGradient(
+                colors: [DS.red.opacity(0.4), .clear],
+                center: .top,
+                startRadius: 0,
+                endRadius: 600
+            )
+            .ignoresSafeArea()
+            .opacity(bgOpacity)
+            
+            ScanlineOverlay()
+            
+            VStack(spacing: 0) {
+                Spacer().frame(height: 60)
+                
+                // 3. Header
                 Text("GAME OVER")
-                    .font(.custom("JetBrainsMono-Bold", size: 48))
-                    .foregroundColor(.white)
-                    .shadow(color: themeColor.opacity(0.8), radius: 15)
+                    .font(DS.orbitron(42, weight: "Black"))
+                    .foregroundColor(DS.red)
+                    .pulsingGlow(DS.red)
                 
-                VStack(spacing: 10) {
-                    Text("SCORE")
-                        .font(.custom("Orbitron-Bold", size: 20))
-                        .foregroundColor(themeColor)
-                    Text("\(gameState.score.formatted())")
-                        .font(.custom("JetBrainsMono-Bold", size: 56))
-                        .foregroundColor(.white)
-                }
+                Text("CONSUMED BY THE VOID")
+                    .font(DS.mono(10))
+                    .foregroundColor(DS.red.opacity(0.6))
+                    .tracking(4)
+                    .padding(.top, 4)
                 
-                // 1. Reward button for player resurrection
-                if gameState.isAdReady {
-                    Button(action: {
-                        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-                           let rootVC = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController {
-                            adManager.showAd(from: rootVC)
+                Spacer().frame(height: 40)
+                
+                // 4. Score Panel
+                SciFiPanel(borderColor: DS.red) {
+                    VStack(spacing: 0) {
+                        
+                        // New Record Badge
+                        if isNewRecord {
+                            HStack(spacing: 6) {
+                                Text("🏆")
+                                Text("NEW RECORD")
+                                    .font(DS.mono(8))
+                                    .foregroundColor(DS.gold)
+                                    .tracking(2)
+                            }
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 4)
+                            .background(DS.gold.opacity(0.1))
+                            .clipShape(SciFiClipShape(cornerSize: 4))
+                            .overlay(SciFiClipShape(cornerSize: 4).stroke(DS.gold.opacity(0.3), lineWidth: 1))
+                            .padding(.top, -12)
+                            .padding(.bottom, 12)
                         }
-                    }) {
-                        HStack {
-                            Image(systemName: "play.tv.fill")
-                            Text("WATCH AD TO REVIVE")
+                        
+                        Text("FINAL SCORE")
+                            .font(DS.mono(9))
+                            .foregroundColor(DS.red.opacity(0.7))
+                            .tracking(3)
+                        
+                        Text("\(gameState.score.formatted())")
+                            .font(.custom("Orbitron-Black", size: 48))
+                            .foregroundColor(.white)
+                            .glow(DS.red, radius: 8)
+                        
+                        Divider()
+                            .background(DS.red.opacity(0.2))
+                            .padding(.vertical, 16)
+                            .padding(.horizontal, 20)
+                        
+                        HStack(spacing: 0) {
+                            // Left Stat
+                            VStack(spacing: 4) {
+                                Text(gameState.isEndlessMode ? "ALL-TIME BEST" : "PLANETS CLEARED")
+                                    .font(DS.mono(7))
+                                    .foregroundColor(DS.red.opacity(0.5))
+                                    .tracking(2)
+                                
+                                let statValue = gameState.isEndlessMode ? SaveManager.getHighScore() : gameState.levelReached
+                                Text("\(statValue.formatted())")
+                                    .font(DS.orbitron(16))
+                                    .foregroundColor(DS.red)
+                            }
+                            .frame(maxWidth: .infinity)
+                            
+                            Rectangle()
+                                .fill(DS.red.opacity(0.2))
+                                .frame(width: 1, height: 30)
+                            
+                            // Right Stat
+                            VStack(spacing: 4) {
+                                Text("MAX COMBO")
+                                    .font(DS.mono(7))
+                                    .foregroundColor(DS.red.opacity(0.5))
+                                    .tracking(2)
+                                
+                                Text("x\(gameState.scoreMultiplier)")
+                                    .font(DS.orbitron(16))
+                                    .foregroundColor(DS.red)
+                            }
+                            .frame(maxWidth: .infinity)
                         }
-                        .font(.custom("JetBrainsMono-ExtraBold", size: 18))
-                        .foregroundColor(.black)
-                        .padding()
-                        .frame(maxWidth: 300)
-                        .background(themeColor)
-                        .cornerRadius(12)
-                        .shadow(color: themeColor.opacity(0.5), radius: 10)
                     }
-                    .buttonStyle(BouncyButtonStyle())
+                    .padding(.vertical, 24)
                 }
+                .padding(.horizontal, 30)
                 
-                // 2. Restart button for a completely fresh run
-                Button(action: {
-                    // 1. Reset player stats
-                    gameState.score = 0
-                    gameState.progress = 0.0
-                    gameState.distanceToBlackHole = 0
-                    gameState.scoreMultiplier = 1
+                Spacer().frame(height: 40)
+                
+                // 5. Buttons
+                VStack(spacing: 12) {
+                    if gameState.isAdReady {
+                        SciFiButton("WATCH AD TO REVIVE", icon: "▶", style: .primary) {
+                            if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                               let rootVC = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController {
+                                adManager.showAd(from: rootVC)
+                            }
+                        }
+                    }
                     
-                    // 2. Return to the active game menu
-                    gameState.currentMenu = .playing
+                    SciFiButton("PLAY AGAIN", icon: "↺", style: .red) {
+                        gameState.resetForNewGame()
+                        gameState.currentMenu = .playing
+                        gameState.gameSessionID = UUID()
+                    }
                     
-                    // 3. Trigger scene recreation via ID change
-                    gameState.gameSessionID = UUID()
-                    
-                }) {
-                    Text("RESTART")
-                        .font(.custom("JetBrainsMono-ExtraBold", size: 18))
-                        .foregroundColor(themeColor)
-                        .padding()
-                        .frame(maxWidth: 300)
-                        .overlay(RoundedRectangle(cornerRadius: 12).stroke(themeColor, lineWidth: 2))
+                    SciFiButton("MAIN MENU", icon: "⌂", style: .secondary) {
+                        gameState.resetForNewGame()
+                        gameState.currentMenu = .mainMenu
+                    }
                 }
-                .buttonStyle(BouncyButtonStyle())
+                .padding(.horizontal, 30)
+                
+                Spacer()
             }
-            .opacity(isVisible ? 1 : 0)
-            .scaleEffect(isVisible ? 1 : 0.8)
-            .offset(y: isVisible ? 0 : 50)
-            .onAppear {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                    isVisible = true
-                }
+            .offset(y: contentOffset)
+            .opacity(contentOpacity)
+        }
+        .onAppear {
+            // Animate background pulse
+            withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                bgOpacity = 1.0
+            }
+            // Animate content slide up
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.1)) {
+                contentOffset = 0
+                contentOpacity = 1.0
             }
         }
-    }
-}
-
-// 3. Custom Button Style for the juicy feeling
-struct BouncyButtonStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed ? 0.92 : 1.0)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: configuration.isPressed)
     }
 }

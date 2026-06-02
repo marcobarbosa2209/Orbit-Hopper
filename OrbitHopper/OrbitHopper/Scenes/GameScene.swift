@@ -80,7 +80,10 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         cameraNode.addChild(nebulaNode)
         
         // 5. Initialize Game Mode (Campaign or Endless)
-        director = EndlessDirector()
+        // director is now injected by ContentView before didMove(to:) is called
+        if director == nil {
+            director = EndlessDirector() // Fallback
+        }
         
         // 6. Update level title for the UI
         if let campaign = director as? CampaignDirector, let level = campaign.currentLevel {
@@ -114,7 +117,11 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         attachShip(to: currentInteractable, atLocalPosition: CGPoint(x: 0, y: startPlanet.colliderRadius + ship.radius))
         
         // 10. Spawn Black Hole at the bottom
-        blackHole = BlackHoleNode(radius: 600)
+        var bhHex: String? = nil
+        if let campaign = director as? CampaignDirector, let level = campaign.currentLevel {
+            bhHex = level.blackHoleColor
+        }
+        blackHole = BlackHoleNode(radius: 600, hexColor: bhHex)
         blackHole.position = CGPoint(x: view.bounds.minX, y: view.bounds.minY - blackHole.radius - 200)
         addChild(blackHole)
         
@@ -469,6 +476,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
             SaveManager.saveHighScore(newScore: director.score)
         }
         
+        // Update GameState stats
+        self.gameState?.levelReached = director.planetsCleared
+        
         // Stop the ship so it doesn't keep triggering collisions
         ship.physicsBody = nil
         ship.removeAllActions()
@@ -541,27 +551,33 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         }
         
         // Action E: Pop up the "LEVEL COMPLETE" UI
-        let showUI = SKAction.run {
+        let showUI = SKAction.run { [weak self] in
+            guard let self = self else { return }
             self.spawnFireworks()
             
-            let winLabel = SKLabelNode(fontNamed: "JetBrainsMono-ExtraBold")
-            winLabel.text = "LEVEL COMPLETE"
-            winLabel.fontSize = 32
-            winLabel.fontColor = self.themeColor
-            winLabel.position = CGPoint(x: 0, y: 0)
-            
-            // Start it tiny and invisible
-            winLabel.alpha = 0
-            winLabel.setScale(0.5)
-            self.cameraNode.addChild(winLabel)
-            
-            // Pop it in
-            let popIn = SKAction.group([
-                SKAction.fadeIn(withDuration: 0.5),
-                SKAction.scale(to: 1.2, duration: 0.5)
-            ])
-            popIn.timingMode = .easeOut
-            winLabel.run(popIn)
+            if let campaign = self.director as? CampaignDirector, let level = campaign.currentLevel {
+                let baseScore = self.director.score
+                let maxScore = level.maxScore
+                
+                // Example logic:
+                // Precision bonus: based on planets cleared vs damage taken (we don't have damage yet, so random-ish for now or fixed)
+                let precision = Int(CGFloat(baseScore) * 0.1)
+                // Time bonus: random for now since we don't track time
+                let time = Int(CGFloat(baseScore) * 0.15)
+                
+                let total = baseScore + precision + time
+                let stars = level.calculateStars(playerScore: total)
+                
+                DispatchQueue.main.async {
+                    self.gameState?.baseScore = baseScore
+                    self.gameState?.precisionBonus = precision
+                    self.gameState?.timeBonus = time
+                    self.gameState?.starsEarned = stars
+                    
+                    SaveManager.saveStars(forLevel: campaign.currentLevelIndex, stars: stars)
+                    self.gameState?.currentMenu = .levelComplete
+                }
+            }
         }
         
         // Run the sequence
@@ -657,7 +673,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         ])
         
         // 4. Show the Game Over UI instead of instantly restarting
-        let showGameOverMenu = SKAction.run {
+        let showGameOverMenu = SKAction.run { [weak self] in
+            guard let self = self else { return }
+            self.gameState?.levelReached = self.director.planetsCleared
             self.isPaused = true
             self.gameState?.currentMenu = .gameOver
         }
