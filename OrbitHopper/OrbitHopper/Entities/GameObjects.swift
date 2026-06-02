@@ -140,6 +140,13 @@ class ShipNode: SKShapeNode {
         sprite.size = CGSize(width: radius * 2, height: radius * 2)
         self.addChild(sprite)
         
+        // 1.5 Add engine thrust particles
+        let thrust = createThrustEmitter()
+        thrust.name = "thrustEmitter"
+        thrust.position = CGPoint(x: 0, y: -radius * 0.8) // Positioned slightly inside the bottom of the ship
+        thrust.zPosition = -1
+        self.addChild(thrust)
+        
         // 2. Physics: Dynamic collider
         self.physicsBody = SKPhysicsBody(circleOfRadius: radius)
         self.physicsBody?.isDynamic = true
@@ -152,6 +159,38 @@ class ShipNode: SKShapeNode {
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    private func createThrustEmitter() -> SKEmitterNode {
+        let emitter = SKEmitterNode()
+        
+        let rect = CGRect(x: 0, y: 0, width: 8, height: 8)
+        UIGraphicsBeginImageContextWithOptions(rect.size, false, 0)
+        guard let context = UIGraphicsGetCurrentContext() else { return emitter }
+        context.setFillColor(UIColor.white.cgColor)
+        context.fillEllipse(in: rect)
+        let image = UIGraphicsGetImageFromCurrentImageContext()!
+        UIGraphicsEndImageContext()
+        
+        emitter.particleTexture = SKTexture(image: image)
+        emitter.particleBirthRate = 80
+        emitter.particleLifetime = 0.5
+        emitter.particlePositionRange = CGVector(dx: 4, dy: 4)
+        emitter.emissionAngle = -.pi / 2
+        emitter.emissionAngleRange = .pi / 6
+        emitter.particleSpeed = 80
+        emitter.particleSpeedRange = 20
+        emitter.particleAlpha = 1.0
+        emitter.particleAlphaSpeed = -2.0
+        emitter.particleScale = 1.0
+        emitter.particleScaleSpeed = -1.5
+        emitter.particleBlendMode = .add
+        
+        let colors: [UIColor] = [.white, .yellow, .orange, .red, .clear]
+        let times: [NSNumber] = [0.0, 0.1, 0.3, 0.6, 1.0]
+        emitter.particleColorSequence = SKKeyframeSequence(keyframeValues: colors, times: times)
+        
+        return emitter
     }
 }
 

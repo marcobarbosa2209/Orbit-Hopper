@@ -53,6 +53,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
     // 8. Black Hole tracking
     var blackHole: BlackHoleNode!
     var lastUpdateTime: TimeInterval = 0
+    var blackHoleAudio: SKAudioNode?
     
     override func didMove(to view: SKView) {
         
@@ -116,6 +117,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         blackHole = BlackHoleNode(radius: 600)
         blackHole.position = CGPoint(x: view.bounds.minX, y: view.bounds.minY - blackHole.radius - 200)
         addChild(blackHole)
+        
+        // 10.1 Add Black Hole dynamic audio
+        let bhAudio = SKAudioNode(fileNamed: "BlackHoleSound.wav")
+        bhAudio.isPositional = false
+        bhAudio.autoplayLooped = true
+        bhAudio.run(SKAction.changeVolume(to: 0, duration: 0))
+        blackHole.addChild(bhAudio)
+        self.blackHoleAudio = bhAudio
+        
+        // 10.2 Add Random Level Music
+        let randomMusicNumber = Int.random(in: 1...4)
+        let musicNode = SKAudioNode(fileNamed: "LevelMusic\(randomMusicNumber).wav")
+        musicNode.isPositional = false
+        musicNode.autoplayLooped = true
+        musicNode.run(SKAction.changeVolume(to: 0.6, duration: 0))
+        self.addChild(musicNode)
         
         // 11. Initial camera alignment
         updateCamera(instant: true)
@@ -369,6 +386,22 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         updateBlackHoleDistance()
         
+        // Calculate Audio Tension
+        if let audio = blackHoleAudio {
+            let maxDistance: CGFloat = 1800
+            let minDistance: CGFloat = 200
+            let currentDist = shipScenePos.y - blackHoleTopEdge
+            
+            var volume: Float = 0
+            if currentDist < minDistance {
+                volume = 1.0
+            } else if currentDist > maxDistance {
+                volume = 0.0
+            } else {
+                volume = Float(1.0 - ((currentDist - minDistance) / (maxDistance - minDistance)))
+            }
+            audio.run(SKAction.changeVolume(to: volume, duration: 0.2))
+        }
         // 2. Garbage Collection: Destroy planets swallowed by the Black Hole
         let killLine = blackHole.position.y + (blackHole.radius - 100)
         
@@ -509,6 +542,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         
         // Action E: Pop up the "LEVEL COMPLETE" UI
         let showUI = SKAction.run {
+            self.spawnFireworks()
+            
             let winLabel = SKLabelNode(fontNamed: "JetBrainsMono-ExtraBold")
             winLabel.text = "LEVEL COMPLETE"
             winLabel.fontSize = 32
@@ -543,6 +578,50 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         ])
         
         self.run(cinematicSequence)
+    }
+    
+    func spawnFireworks() {
+        for _ in 0..<8 {
+            let firework = SKEmitterNode()
+            let rect = CGRect(x: 0, y: 0, width: 6, height: 6)
+            UIGraphicsBeginImageContextWithOptions(rect.size, false, 0)
+            guard let context = UIGraphicsGetCurrentContext() else { continue }
+            context.setFillColor(UIColor.white.cgColor)
+            context.fillEllipse(in: rect)
+            let image = UIGraphicsGetImageFromCurrentImageContext()!
+            UIGraphicsEndImageContext()
+            
+            firework.particleTexture = SKTexture(image: image)
+            firework.particleBirthRate = 600
+            firework.numParticlesToEmit = 100
+            firework.particleLifetime = 1.0
+            firework.emissionAngleRange = .pi * 2
+            firework.particleSpeed = 150
+            firework.particleSpeedRange = 50
+            firework.particleAlpha = 1.0
+            firework.particleAlphaSpeed = -1.0
+            firework.particleScale = 0.5
+            firework.particleScaleRange = 0.3
+            firework.particleScaleSpeed = -0.5
+            firework.particleColorBlendFactor = 1.0
+            
+            let colors: [UIColor] = [.cyan, .magenta, .yellow, .green]
+            firework.particleColor = colors.randomElement() ?? .white
+            firework.particleBlendMode = .add
+            
+            let screenWidth = self.size.width
+            let screenHeight = self.size.height
+            let randomX = self.cameraNode.position.x + CGFloat.random(in: -screenWidth/2.2...screenWidth/2.2)
+            let randomY = self.cameraNode.position.y + CGFloat.random(in: -screenHeight/2.2...screenHeight/2.2)
+            firework.position = CGPoint(x: randomX, y: randomY)
+            firework.zPosition = 100
+            
+            self.addChild(firework)
+            
+            let wait = SKAction.wait(forDuration: 1.5)
+            let remove = SKAction.removeFromParent()
+            firework.run(SKAction.sequence([wait, remove]))
+        }
     }
     
     
@@ -676,8 +755,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate {
         let launchAngle = atan2(direction.dy, direction.dx)
         ship.zRotation = launchAngle - (.pi / 2)
         
+        // --- PLAY LAUNCH AUDIO ---
+        self.run(SKAction.playSoundFileNamed("RocketLaunch1.wav", waitForCompletion: false))
+        
         let launchForce: CGFloat = 8
         ship.physicsBody?.applyImpulse(CGVector(dx: direction.dx * launchForce, dy: direction.dy * launchForce))
+        
+        if let burst = ship.childNode(withName: "thrustEmitter") as? SKEmitterNode {
+            burst.particleBirthRate = 400
+            let wait = SKAction.wait(forDuration: 0.2)
+            let reset = SKAction.run { burst.particleBirthRate = 80 }
+            burst.run(SKAction.sequence([wait, reset]))
+        }
     
         // Thicker raycast
         var willHitSomething = false

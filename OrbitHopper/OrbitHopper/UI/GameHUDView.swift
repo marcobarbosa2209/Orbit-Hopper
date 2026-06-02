@@ -75,7 +75,7 @@ struct GameHUDView: View {
                                     RoundedRectangle(cornerRadius: 6)
                                         .fill(gameState.progress <= 1 ? themeColor : Color.yellow)
                                         .frame(width: geometry.size.width * min(1.0, gameState.progress))
-                                        .animation(.spring(), value: gameState.progress)
+                                        .animation(.spring(response: 0.4, dampingFraction: 0.6), value: gameState.progress)
                                 }
                             }
                             .frame(height: 10)
@@ -86,9 +86,10 @@ struct GameHUDView: View {
                         }
                     }
                     .padding(16)
-                    .background(Color.black.opacity(0.7))
+                    .background(.ultraThinMaterial)
                     .cornerRadius(12)
                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(themeColor, lineWidth: 1.5))
+                    .shadow(color: themeColor.opacity(0.6), radius: 8, x: 0, y: 0)
                     .allowsHitTesting(false)
                     
                     
@@ -101,9 +102,10 @@ struct GameHUDView: View {
                             .font(.system(size: 28, weight: .bold, design: .rounded))
                             .foregroundColor(themeColor)
                             .frame(width: 84, height: 84)
-                            .background(Color.black.opacity(0.7))
+                            .background(.ultraThinMaterial)
                             .cornerRadius(12)
                             .overlay(RoundedRectangle(cornerRadius: 12).stroke(themeColor, lineWidth: 1.5))
+                            .shadow(color: themeColor.opacity(0.6), radius: 8, x: 0, y: 0)
                     }
                     
                 }

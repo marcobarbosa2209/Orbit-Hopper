@@ -45,6 +45,19 @@ struct ContentView: View {
             adManager.gameState = gameState
             adManager.initialize()
             currentScene = makeScene()
+            
+            // 2. Play menu music initially if not in game
+            if gameState.currentMenu != .playing {
+                AudioManager.shared.playMenuMusic()
+            }
+        }
+        .onChange(of: gameState.currentMenu) { newValue in
+            // 1. Handle music transitions
+            if newValue == .playing {
+                AudioManager.shared.pauseMenuMusic()
+            } else {
+                AudioManager.shared.playMenuMusic()
+            }
         }
         .onChange(of: gameState.gameSessionID) {
             // 1. Create fresh scene on game restart
